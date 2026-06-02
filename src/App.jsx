@@ -2134,13 +2134,12 @@ ${message.body || message.snippet}`,
         )}
 
         {view === "import" && (
-          <section style={styles.grid2}>
-{view === "import" && (
   <section style={styles.grid2}>
     <div style={{ gridColumn: "1 / -1" }}>
       <BackupPanel onRestoreComplete={handleRestoreComplete} />
     </div>
     <Panel title="Şirketler CSV">
+
             <Panel title="Şirketler CSV">
               <label style={styles.fileLabel}>
                 <input type="file" accept=".csv" style={styles.fileInput} onChange={(e) => e.target.files?.[0] && importCSV(e.target.files[0], "companies")} />
