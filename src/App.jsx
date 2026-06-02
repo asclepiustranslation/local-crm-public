@@ -659,6 +659,12 @@ ${message.body || message.snippet}`,
     setImportMessage(`Mail CRM'e aktarıldı: ${message.subject}`);
   };
 
+  const deleteActivity = (id) => {
+    if (window.confirm("Bu aktiviteyi silmek istediğinize emin misiniz?")) {
+      setActivities((prev) => prev.filter((a) => a.id !== id));
+    }
+  };
+
   const enrichedContacts = useMemo(
     () =>
       contacts.map((contact) => {
@@ -1883,10 +1889,23 @@ ${message.body || message.snippet}`,
               </div>
 
               {relatedActivities.map((a) => (
-                <div key={a.id} style={styles.card}>
-                  <b>{a.subject}</b>
-                  <div>{a.type} · {a.direction} · {new Date(a.createdAt).toLocaleString("tr-TR")}</div>
-                  <div>{a.body}</div>
+                <div key={a.id} style={{ ...styles.card }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <b>{a.subject}</b>
+                      <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
+                        {a.type} · {a.direction}
+                        {a.source === "gmail-manual" && <span style={{ marginLeft: 6, background: "#dbeafe", color: "#1e40af", borderRadius: 99, padding: "1px 7px", fontSize: 11, fontWeight: 600 }}>Gmail</span>}
+                        {" · "}{new Date(a.createdAt).toLocaleString("tr-TR")}
+                      </div>
+                      <div style={{ marginTop: 4, fontSize: 13, whiteSpace: "pre-wrap" }}>{a.body}</div>
+                    </div>
+                    <button
+                      onClick={() => deleteActivity(a.id)}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: 16, padding: "2px 4px", flexShrink: 0 }}
+                      title="Sil"
+                    >🗑</button>
+                  </div>
                 </div>
               ))}
 
@@ -1911,10 +1930,23 @@ ${message.body || message.snippet}`,
           <section style={styles.grid2}>
             <Panel title="Aktivite Listesi">
               {activities.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((a) => (
-                <div key={a.id} style={styles.card}>
-                  <b>{a.subject}</b>
-                  <div>{a.entityType} · {a.type} · {new Date(a.createdAt).toLocaleString("tr-TR")}</div>
-                  <div>{a.body}</div>
+                <div key={a.id} style={{ ...styles.card, position: "relative" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                    <div style={{ flex: 1 }}>
+                      <b>{a.subject}</b>
+                      <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
+                        {a.entityType} · {a.type}
+                        {a.source === "gmail-manual" && <span style={{ marginLeft: 6, background: "#dbeafe", color: "#1e40af", borderRadius: 99, padding: "1px 7px", fontSize: 11, fontWeight: 600 }}>Gmail</span>}
+                        {" · "}{new Date(a.createdAt).toLocaleString("tr-TR")}
+                      </div>
+                      <div style={{ marginTop: 4, fontSize: 13 }}>{a.body}</div>
+                    </div>
+                    <button
+                      onClick={() => deleteActivity(a.id)}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: 16, padding: "2px 4px", flexShrink: 0 }}
+                      title="Sil"
+                    >🗑</button>
+                  </div>
                 </div>
               ))}
             </Panel>
