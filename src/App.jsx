@@ -13,6 +13,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
+import BackupPanel from "./components/BackupPanel";
 
 const LS_COMPANIES = "asklepius-companies";
 const LS_CONTACTS = "asklepius-contacts";
@@ -1231,6 +1232,15 @@ ${message.body || message.snippet}`,
     setView("details");
   };
 
+  const handleRestoreComplete = () => {
+    setContacts(JSON.parse(localStorage.getItem(LS_CONTACTS) || "[]"));
+    setCompanies(JSON.parse(localStorage.getItem(LS_COMPANIES) || "[]"));
+    setDeals(JSON.parse(localStorage.getItem(LS_DEALS) || "[]"));
+    setProjects(JSON.parse(localStorage.getItem(LS_PROJECTS) || "[]"));
+    setActivities(JSON.parse(localStorage.getItem(LS_ACTIVITIES) || "[]"));
+    setExpenses(JSON.parse(localStorage.getItem(LS_EXPENSES) || "[]"));
+  };
+
   const importCSV = async (file, mode) => {
     const text = await file.text();
     const rows = parseCSV(text);
@@ -1346,6 +1356,7 @@ ${message.body || message.snippet}`,
               ["accounting", "Muhasebe"],
               ["gmail", "Mailleri Getir"],
               ["import", "İçe Aktar"],
+              ["settings", "Ayarlar"],
             ].map(([k, t]) => (
               <button key={k} onClick={() => setView(k)} style={view === k ? styles.sidebarButtonActive : styles.sidebarButton}>
                 {t}
@@ -2110,6 +2121,14 @@ ${message.body || message.snippet}`,
                   ))
                 )}
               </Panel>
+            </div>
+          </section>
+        )}
+
+        {view === "settings" && (
+          <section style={styles.grid2}>
+            <div style={{ gridColumn: "1 / -1" }}>
+              <BackupPanel onRestoreComplete={handleRestoreComplete} />
             </div>
           </section>
         )}
