@@ -13,7 +13,7 @@ import {
   Cell,
   Legend,
 } from "recharts";
-import BackupPanel from "./components/BackupPanel";
+import BackupPanel from "./BackupPanel";
 
 const LS_COMPANIES = "asklepius-companies";
 const LS_CONTACTS = "asklepius-contacts";
