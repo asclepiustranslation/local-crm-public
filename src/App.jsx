@@ -343,6 +343,7 @@ export default function App() {
   const [expenseForm, setExpenseForm] = useState({
     title: "",
     category: "other",
+    customCategory: "",
     amount: "",
     date: "",
     type: "one-time",
@@ -1178,6 +1179,12 @@ ${message.body || message.snippet}`,
       spreadMonths: 12,
       note: "",
     });
+  };
+
+  const deleteExpense = (id) => {
+    if (window.confirm("Bu gideri silmek istediğinize emin misiniz?")) {
+      setExpenses((prev) => prev.filter((e) => e.id !== id));
+    }
   };
 
   const addActivity = (e) => {
@@ -2150,7 +2157,30 @@ ${message.body || message.snippet}`,
                 <InputField label="Başlık" value={expenseForm.title} onChange={(v) => setExpenseForm({ ...expenseForm, title: v })} />
                 <InputField label="Tutar" value={expenseForm.amount} onChange={(v) => setExpenseForm({ ...expenseForm, amount: v })} type="number" />
                 <InputField label="Tarih" value={expenseForm.date} onChange={(v) => setExpenseForm({ ...expenseForm, date: v })} type="date" />
-                <label style={styles.field}><span style={styles.label}>Kategori</span><select value={expenseForm.category} onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })} style={styles.input}><option value="other">Other</option><option value="software">Software</option><option value="salary">Salary</option><option value="rent">Rent</option><option value="tax">Tax</option></select></label>
+                <label style={styles.field}>
+                  <span style={styles.label}>Kategori</span>
+                  <select
+                    value={expenseForm.category}
+                    onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value, customCategory: "" })}
+                    style={styles.input}
+                  >
+                    <option value="software">Software</option>
+                    <option value="salary">Salary</option>
+                    <option value="rent">Rent</option>
+                    <option value="tax">Tax</option>
+                    <option value="other">Other</option>
+                    <option value="__custom__">+ Yeni kategori ekle…</option>
+                  </select>
+                  {expenseForm.category === "__custom__" && (
+                    <input
+                      type="text"
+                      placeholder="Kategori adını yazın (örn: araç gideri)"
+                      value={expenseForm.customCategory}
+                      onChange={(e) => setExpenseForm({ ...expenseForm, customCategory: e.target.value })}
+                      style={{ ...styles.input, marginTop: 6 }}
+                    />
+                  )}
+                </label>
                 <label style={styles.field}><span style={styles.label}>Tip</span><select value={expenseForm.type} onChange={(e) => setExpenseForm({ ...expenseForm, type: e.target.value })} style={styles.input}><option value="one-time">One-time</option><option value="recurring">Recurring</option></select></label>
                 <label style={styles.field}><span style={styles.label}>Tanıma</span><select value={expenseForm.recognition} onChange={(e) => setExpenseForm({ ...expenseForm, recognition: e.target.value })} style={styles.input}><option value="cash">Cash</option><option value="spread">Spread</option></select></label>
                 {expenseForm.type === "recurring" && expenseForm.recognition === "spread" && <InputField label="Dağıtılacak ay" value={expenseForm.spreadMonths} onChange={(v) => setExpenseForm({ ...expenseForm, spreadMonths: v })} type="number" />}
@@ -2227,7 +2257,7 @@ ${message.body || message.snippet}`,
                       <table style={styles.table}>
                         <thead>
                           <tr>
-                            {["Tarih","Başlık","Şirket","Tür","Kategori","Tutar"].map((h) =>
+                            {["Tarih","Başlık","Şirket","Tür","Kategori","Tutar",""].map((h) =>
                               <th key={h} style={styles.th}>{h}</th>
                             )}
                           </tr>
@@ -2261,6 +2291,15 @@ ${message.body || message.snippet}`,
                                 color: r.kind === "expense" ? "#991b1b" : "#166534"
                               }}>
                                 {r.kind === "expense" ? "−" : "+"}{money(r.amount)}
+                              </td>
+                              <td style={styles.td}>
+                                {r.source === "expense" && (
+                                  <button
+                                    onClick={() => deleteExpense(r.id.replace("expense-", ""))}
+                                    style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: 16, padding: "2px 6px" }}
+                                    title="Sil"
+                                  >🗑</button>
+                                )}
                               </td>
                             </tr>
                           ))}
