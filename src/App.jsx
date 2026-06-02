@@ -1150,7 +1150,9 @@ ${message.body || message.snippet}`,
       {
         id: crypto.randomUUID(),
         title: expenseForm.title,
-        category: expenseForm.category,
+        category: expenseForm.category === "__custom__"
+          ? (expenseForm.customCategory.trim() || "other")
+          : expenseForm.category,
         amount: Number(expenseForm.amount),
         date: expenseForm.date,
         type: expenseForm.type,
@@ -1167,6 +1169,7 @@ ${message.body || message.snippet}`,
     setExpenseForm({
       title: "",
       category: "other",
+      customCategory: "",
       amount: "",
       date: "",
       type: "one-time",
