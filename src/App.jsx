@@ -1979,7 +1979,7 @@ ${message.body || message.snippet}`,
                     </div>
                     <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px" }}>
                       <div style={{ fontSize: 11, color: "#6b7280" }}>Toplam Gelir</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: "#166534" }}>{money(reportDeals.reduce((s, d) => s + Number(d.estRevenue || 0), 0))}</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: "#166534" }}>{money(reportDeals.filter((d) => ["closed won","reservasyon","reservasyonlu","reserved"].includes(d.status)).reduce((s, d) => s + Number(d.estRevenue || 0), 0))}</div>
                     </div>
                     <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px" }}>
                       <div style={{ fontSize: 11, color: "#6b7280" }}>Rapor Tarihi</div>
