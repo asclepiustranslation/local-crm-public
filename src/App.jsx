@@ -935,7 +935,7 @@ ${message.body || message.snippet}`,
     return {
       companies: companies.length,
       contacts: contacts.length,
-      openDeals: deals.filter((d) => d.status !== "closed won" && d.status !== "closed lost").length,
+      openDeals: deals.filter((d) => ["işlemde", "ödeme bekleniyor"].includes(d.status)).length,
       reservedDeals: deals.filter((d) => ["reservasyonlu", "reserved", "reservasyon"].includes(d.status)).length,
       realizedIncome,
       pendingIncome,
