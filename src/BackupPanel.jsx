@@ -1,22 +1,16 @@
-// components/BackupPanel.jsx
-// ASKLEPIUS CRM — Yedekleme & Geri Yükleme Paneli
-// Kullanım: App.jsx içindeki ayarlar/sidebar bölümüne ekleyin.
-
+// src/BackupPanel.jsx
+// ASKLEPIUS CRM — Tailwind YOK, tamamen inline style
 import { useState, useRef } from "react";
-import { useBackup } from "../hooks/useBackup"; // yolu projenize göre ayarlayın
+import { useBackup } from "./useBackup";
 
 export default function BackupPanel({ onRestoreComplete }) {
   const { exportBackup, importBackup } = useBackup();
   const fileInputRef = useRef(null);
-
   const [status, setStatus] = useState(null);
-  // status: null | { type: "success"|"error"|"info", message: string }
+  const [lastBackupTime, setLastBackupTime] = useState(
+    () => localStorage.getItem("_lastBackupTime") || null
+  );
 
-  const [lastBackupTime, setLastBackupTime] = useState(() => {
-    return localStorage.getItem("_lastBackupTime") || null;
-  });
-
-  // ── Yedek İndir ────────────────────────────────────────────────────────────
   const handleExport = () => {
     const timestamp = exportBackup();
     localStorage.setItem("_lastBackupTime", timestamp);
@@ -25,19 +19,21 @@ export default function BackupPanel({ onRestoreComplete }) {
     setTimeout(() => setStatus(null), 4000);
   };
 
-  // ── Dosya Seç & Yükle ──────────────────────────────────────────────────────
+  const handleRestoreClick = () => {
+    const confirmed = window.confirm(
+      "⚠️ Mevcut tüm CRM verisi silinip yedeğinizdeki verilerle değiştirilecek.\n\nDevam etmek istiyor musunuz?"
+    );
+    if (confirmed) fileInputRef.current?.click();
+  };
+
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Sadece .json dosyaları
     if (!file.name.endsWith(".json")) {
       setStatus({ type: "error", message: "Lütfen bir .json yedek dosyası seçin." });
       return;
     }
-
     setStatus({ type: "info", message: "Dosya okunuyor…" });
-
     importBackup(file, {
       onSuccess: (restoredKeys, meta) => {
         setStatus({
@@ -46,9 +42,7 @@ export default function BackupPanel({ onRestoreComplete }) {
             meta.createdAt ? new Date(meta.createdAt).toLocaleString("tr-TR") : "?"
           })`,
         });
-        // input'u sıfırla
         if (fileInputRef.current) fileInputRef.current.value = "";
-        // Sayfayı yenile: localStorage güncellendiği için React state'leri resetlenmeli
         onRestoreComplete?.();
       },
       onError: (msg) => {
@@ -58,84 +52,98 @@ export default function BackupPanel({ onRestoreComplete }) {
     });
   };
 
-  // ── Onaylı Geri Yükleme ────────────────────────────────────────────────────
-  const handleRestoreClick = () => {
-    const confirmed = window.confirm(
-      "⚠️ Mevcut tüm CRM verisi silinip yedeğinizdeki verilerle değiştirilecek.\n\nDevam etmek istiyor musunuz?"
-    );
-    if (confirmed) fileInputRef.current?.click();
-  };
-
-  // ── Stil yardımcıları (Tailwind varsayımı) ─────────────────────────────────
-  const statusColors = {
-    success: "bg-green-50 border-green-400 text-green-800",
-    error:   "bg-red-50 border-red-400 text-red-800",
-    info:    "bg-blue-50 border-blue-400 text-blue-800",
+  const statusStyle = {
+    success: { background: "#f0fdf4", border: "1px solid #86efac", color: "#166534" },
+    error:   { background: "#fef2f2", border: "1px solid #fca5a5", color: "#991b1b" },
+    info:    { background: "#eff6ff", border: "1px solid #93c5fd", color: "#1e40af" },
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow p-6 space-y-5 max-w-md">
-      <div>
-        <h2 className="text-lg font-semibold text-gray-800">Veri Yedekleme</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Tüm CRM verinizi tek bir JSON dosyasına aktarın veya daha önce oluşturduğunuz bir
-          yedekten geri yükleyin.
-        </p>
+    <div style={{
+      background: "#fff",
+      borderRadius: 12,
+      boxShadow: "0 1px 4px rgba(0,0,0,0.10)",
+      padding: "20px 24px",
+      marginBottom: 24,
+    }}>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ fontSize: 16, fontWeight: 700, color: "#1f2937", marginBottom: 4 }}>
+          Veri Yedekleme
+        </div>
+        <div style={{ fontSize: 13, color: "#6b7280" }}>
+          Tüm CRM verinizi tek JSON dosyasına aktarın veya daha önce oluşturduğunuz bir yedekten geri yükleyin.
+        </div>
       </div>
 
-      {/* Son yedek zamanı */}
       {lastBackupTime && (
-        <p className="text-xs text-gray-400">
+        <div style={{ fontSize: 12, color: "#9ca3af", marginBottom: 12 }}>
           Son yedek:{" "}
-          <span className="font-medium text-gray-600">
+          <span style={{ fontWeight: 600, color: "#6b7280" }}>
             {new Date(lastBackupTime).toLocaleString("tr-TR")}
           </span>
-        </p>
+        </div>
       )}
 
-      {/* Durum mesajı */}
       {status && (
-        <div
-          className={`rounded-lg border px-4 py-3 text-sm font-medium ${statusColors[status.type]}`}
-        >
+        <div style={{
+          ...statusStyle[status.type],
+          borderRadius: 8,
+          padding: "10px 14px",
+          fontSize: 13,
+          fontWeight: 500,
+          marginBottom: 12,
+        }}>
           {status.message}
         </div>
       )}
 
-      {/* Butonlar */}
-      <div className="flex gap-3 flex-wrap">
-        {/* Export */}
+      <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
         <button
           onClick={handleExport}
-          className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition"
+          style={{
+            background: "#8A6322",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "9px 18px",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
         >
           ⬇ Yedeği İndir
         </button>
 
-        {/* Import */}
         <button
           onClick={handleRestoreClick}
-          className="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-sm font-medium px-4 py-2 rounded-xl transition"
+          style={{
+            background: "#d97706",
+            color: "#fff",
+            border: "none",
+            borderRadius: 8,
+            padding: "9px 18px",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
         >
           ↩ Yedekten Geri Yükle
         </button>
       </div>
 
-      {/* Gizli file input */}
       <input
         ref={fileInputRef}
         type="file"
         accept=".json,application/json"
         onChange={handleFileChange}
-        className="hidden"
+        style={{ display: "none" }}
       />
 
-      {/* Bilgi notu */}
-      <p className="text-xs text-gray-400 leading-relaxed">
-        Dosya adı formatı: <code className="text-gray-600">ASKLEPIUS_CRM_BACKUP_YYYY-MM-DD_HH-MM.json</code>
+      <div style={{ fontSize: 11, color: "#9ca3af", marginTop: 12, lineHeight: 1.6 }}>
+        Dosya adı: <code style={{ color: "#6b7280" }}>ASKLEPIUS_CRM_BACKUP_YYYY-MM-DD_HH-MM.json</code>
         <br />
         Geri yükleme mevcut veriyi tamamen değiştirir — önce mutlaka yedek alın.
-      </p>
+      </div>
     </div>
   );
 }
