@@ -742,11 +742,13 @@ ${message.body || message.snippet}`,
   }, [dealFiltered]);
 
   const dealStats = useMemo(() => {
-    const won = dealFiltered.filter((d) => d.status === "closed won");
-    const pending = dealFiltered.filter((d) => d.status === "işlemde" || d.status === "reservasyon").length;
-    const totalRevenue = won.reduce((s, d) => s + Number(d.estRevenue || 0), 0);
-    return { count: dealFiltered.length, wonCount: won.length, pending, totalRevenue };
-  }, [dealFiltered]);
+    const won     = deals.filter((d) => d.status === "closed won");
+    const pending = deals.filter((d) => ["işlemde", "ödeme bekleniyor"].includes(d.status)).length;
+    const totalRevenue = deals
+      .filter((d) => ["closed won", "reservasyon", "reservasyonlu", "reserved"].includes(d.status))
+      .reduce((s, d) => s + Number(d.estRevenue || 0), 0);
+    return { count: deals.length, wonCount: won.length, pending, totalRevenue };
+  }, [deals]);
 
   const reservedDeals = useMemo(
     () => deals.filter((d) => ["reservasyonlu", "reserved", "reservasyon"].includes(d.status)),
@@ -1891,6 +1893,52 @@ ${message.body || message.snippet}`,
               </div>
               <div style={styles.filters}>
                 <input type="date" value={reportToDate} onChange={(e) => setReportToDate(e.target.value)} style={styles.input} />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReportStatusFilter("");
+                    setReportCompanyFilter("");
+                    setReportContactFilter("");
+                    setReportYearFilter("");
+                    setReportMonthFilter("");
+                    setReportFromDate("");
+                    setReportToDate("");
+                  }}
+                  style={{ ...styles.input, background: "#f3f4f6", color: "#374151", cursor: "pointer", border: "1px solid #d1d5db", fontWeight: 600 }}
+                >
+                  ↺ Sıfırla
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById("report-printable");
+                    if (!el) return;
+                    const win = window.open("", "_blank");
+                    win.document.write(`
+                      <html><head><title>Asklepius CRM — Gelir Raporu</title>
+                      <style>
+                        body { font-family: Inter, system-ui, sans-serif; padding: 24px; color: #1f2937; }
+                        h2 { color: #8A6322; margin-bottom: 8px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                        th { background: #8A6322; color: #fff; padding: 8px 12px; text-align: left; font-size: 13px; }
+                        td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
+                        tr:nth-child(even) td { background: #fef9f0; }
+                        .kpi-row { display: flex; gap: 16px; margin: 16px 0; flex-wrap: wrap; }
+                        .kpi { background: #fff8ea; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 18px; }
+                        .kpi-label { font-size: 11px; color: #6b7280; }
+                        .kpi-value { font-size: 20px; font-weight: 700; color: #1f2937; }
+                      </style></head><body>
+                      ${el.innerHTML}
+                      </body></html>
+                    `);
+                    win.document.close();
+                    win.focus();
+                    setTimeout(() => { win.print(); win.close(); }, 400);
+                  }}
+                  style={{ ...styles.input, background: "#8A6322", color: "#fff", cursor: "pointer", border: "none", fontWeight: 600 }}
+                >
+                  📄 PDF İndir
+                </button>
               </div>
               <ResponsiveContainer width="100%" height={280}>
                 <BarChart data={monthlyRevenue}>
@@ -1917,14 +1965,35 @@ ${message.body || message.snippet}`,
 
             <div style={{ gridColumn: "1 / -1" }}>
               <Panel title="Filtrelenmiş Deal Listesi">
-                {reportDeals.length === 0 ? (
-                  <p>Sonuç bulunamadı.</p>
-                ) : (
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={styles.table}>
-                      <thead>
-                        <tr>
-                          {['Deal','Şirket','Kişi','Tarih','Statü','Gelir'].map((h)=><th key={h} style={styles.th}>{h}</th>)}
+                <div id="report-printable">
+                  <h2 style={{ color: "#8A6322", marginBottom: 8 }}>
+                    Asklepius CRM — Gelir Raporu
+                    {reportYearFilter ? ` (${reportYearFilter})` : ""}
+                    {reportMonthFilter ? ` / ${reportMonthFilter}` : ""}
+                    {reportCompanyFilter ? ` — ${reportCompanyFilter}` : ""}
+                  </h2>
+                  <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+                    <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px" }}>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Deal Sayısı</div>
+                      <div style={{ fontSize: 20, fontWeight: 700 }}>{reportDeals.length}</div>
+                    </div>
+                    <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px" }}>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Toplam Gelir</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: "#166534" }}>{money(reportDeals.reduce((s, d) => s + Number(d.estRevenue || 0), 0))}</div>
+                    </div>
+                    <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px" }}>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Rapor Tarihi</div>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{new Date().toLocaleDateString("tr-TR")}</div>
+                    </div>
+                  </div>
+                  {reportDeals.length === 0 ? (
+                    <p>Sonuç bulunamadı.</p>
+                  ) : (
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>
+                            {['Deal','Şirket','Kişi','Tarih','Statü','Gelir'].map((h)=><th key={h} style={styles.th}>{h}</th>)}
                         </tr>
                       </thead>
                       <tbody>
@@ -1934,14 +2003,27 @@ ${message.body || message.snippet}`,
                             <td style={styles.td}>{d.customer}</td>
                             <td style={styles.td}>{d.contactPerson || "-"}</td>
                             <td style={styles.td}>{d.dateReceived || "-"}</td>
-                            <td style={styles.td}>{d.status}</td>
-                            <td style={styles.td}>{money(d.estRevenue)}</td>
+                            <td style={styles.td}>
+                              <span style={{
+                                padding: "2px 8px", borderRadius: 99, fontSize: 12, fontWeight: 600,
+                                background: d.status === "closed won" ? "#dcfce7"
+                                  : d.status === "kayıp/iptal" ? "#fee2e2"
+                                  : ["reservasyon","reservasyonlu","reserved"].includes(d.status) ? "#fef9c3"
+                                  : "#f3f4f6",
+                                color: d.status === "closed won" ? "#166534"
+                                  : d.status === "kayıp/iptal" ? "#991b1b"
+                                  : ["reservasyon","reservasyonlu","reserved"].includes(d.status) ? "#92400e"
+                                  : "#374151",
+                              }}>{d.status}</span>
+                            </td>
+                            <td style={{ ...styles.td, fontWeight: 600, color: "#166534" }}>{money(d.estRevenue)}</td>
                           </tr>
                         ))}
                       </tbody>
                     </table>
                   </div>
-                )}
+                  )}
+                </div>
               </Panel>
             </div>
           </section>
