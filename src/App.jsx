@@ -519,17 +519,23 @@ export default function App() {
       setGmailError("");
       if (!accessToken) throw new Error("Gmail access token bulunamadı");
 
-      const params = new URLSearchParams();
-      params.set("maxResults", "20");
-      if (query) params.set("q", query);
-      if (label) params.set("labelIds", label);
-
-      const listRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      if (!listRes.ok) throw new Error("Gmail mesaj listesi alınamadı");
-      const listData = await listRes.json();
-      const messages = listData.messages || [];
+      // Tüm sayfaları nextPageToken ile çek
+      let messages = [];
+      let pageToken = null;
+      do {
+        const params = new URLSearchParams();
+        params.set("maxResults", "500");
+        if (query) params.set("q", query);
+        if (label) params.set("labelIds", label);
+        if (pageToken) params.set("pageToken", pageToken);
+        const listRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?${params.toString()}`, {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        if (!listRes.ok) throw new Error("Gmail mesaj listesi alınamadı");
+        const listData = await listRes.json();
+        messages = messages.concat(listData.messages || []);
+        pageToken = listData.nextPageToken || null;
+      } while (pageToken);
 
       const details = await Promise.all(
         messages.map(async (m) => {
