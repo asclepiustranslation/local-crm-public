@@ -1,4 +1,4 @@
-// BackupPanel.jsx
+// components/BackupPanel.jsx
 // ASKLEPIUS CRM — Yedekleme & Geri Yükleme Paneli
 // Kullanım: App.jsx içindeki ayarlar/sidebar bölümüne ekleyin.
 

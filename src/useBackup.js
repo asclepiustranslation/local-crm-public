@@ -9,14 +9,14 @@ import { useCallback } from "react";
 // CRM'inizdeki tüm state'leri burada listeleyin.
 // Eğer farklı key isimleri kullanıyorsanız bu diziyi güncelleyin.
 const BACKUP_KEYS = [
-  "asklepius-companies",   // Şirketler
-  "asklepius-contacts",    // Kişiler
-  "asklepius-deals",       // Fırsatlar / Anlaşmalar
-  "asklepius-projects",    // Projeler
-  "asklepius-activities",  // Aktiviteler
-  "asklepius-expenses",    // Giderler
-  "googleAuth",            // Google hesap oturumu
-  "gmailAuth",             // Gmail oturumu
+  "contacts",        // Kişiler
+  "companies",       // Şirketler
+  "deals",           // Fırsatlar / Anlaşmalar
+  "activities",      // Aktiviteler
+  "notes",           // Notlar
+  "reminders",       // Hatırlatıcılar
+  "settings",        // Uygulama ayarları
+  "gmailImports",    // Gmail'den aktarılan maillar
 ];
 
 // ─── Tarih formatı: ASKLEPIUS_CRM_BACKUP_2026-06-02_16-13.json ────────────────
