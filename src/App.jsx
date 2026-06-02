@@ -322,6 +322,11 @@ export default function App() {
   const [expenseCategoryFilter, setExpenseCategoryFilter] = useState("");
   const [expenseTypeFilter, setExpenseTypeFilter] = useState("");
   const [expenseRecognitionFilter, setExpenseRecognitionFilter] = useState("");
+  // Muhasebe raporu ek filtreleri
+  const [accYearFilter, setAccYearFilter] = useState("");
+  const [accMonthFilter, setAccMonthFilter] = useState("");
+  const [accCompanyFilter, setAccCompanyFilter] = useState("");
+  const [accContactFilter, setAccContactFilter] = useState("");
 
   const [importMessage, setImportMessage] = useState("");
   const [editState, setEditState] = useState({ type: null, item: null });
@@ -823,7 +828,17 @@ ${message.body || message.snippet}`,
       .filter((r) => (expenseDateTo ? r.date <= expenseDateTo : true))
       .filter((r) => (expenseCategoryFilter ? r.category === expenseCategoryFilter : true))
       .filter((r) => (expenseTypeFilter ? r.kind === expenseTypeFilter || r.source === expenseTypeFilter : true))
-      .filter((r) => (expenseRecognitionFilter ? r.recognition === expenseRecognitionFilter : true));
+      .filter((r) => (expenseRecognitionFilter ? r.recognition === expenseRecognitionFilter : true))
+      .filter((r) => (accYearFilter ? String(r.date || "").slice(0, 4) === accYearFilter : true))
+      .filter((r) => (accMonthFilter ? String(r.date || "").slice(0, 7) === accMonthFilter : true))
+      .filter((r) => (accCompanyFilter ? r.customer === accCompanyFilter : true))
+      .filter((r) => {
+        if (!accContactFilter) return true;
+        // Kişi filtresi: deal veya proje'deki contactPerson alanına bak
+        const deal = deals.find((d) => `deal-${d.id}` === r.id);
+        if (deal) return deal.contactPerson === accContactFilter;
+        return true;
+      });
   }, [
     deals,
     projects,
@@ -833,6 +848,10 @@ ${message.body || message.snippet}`,
     expenseCategoryFilter,
     expenseTypeFilter,
     expenseRecognitionFilter,
+    accYearFilter,
+    accMonthFilter,
+    accCompanyFilter,
+    accContactFilter,
   ]);
 
   const monthlyProfitLoss = useMemo(() => {
@@ -1930,6 +1949,95 @@ ${message.body || message.snippet}`,
 
         {view === "accounting" && (
           <section style={styles.grid2}>
+
+            {/* ── Filtreler ── */}
+            <div style={{ gridColumn: "1 / -1" }}>
+              <Panel title="Gelir / Gider Raporu Filtreleri">
+                <div style={styles.filters}>
+                  <select value={accYearFilter} onChange={(e) => setAccYearFilter(e.target.value)} style={styles.input}>
+                    <option value="">Tüm yıllar</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                  </select>
+                  <input type="month" value={accMonthFilter} onChange={(e) => setAccMonthFilter(e.target.value)} style={styles.input} placeholder="Ay seç" />
+                  <input type="date" value={expenseDateFrom} onChange={(e) => setExpenseDateFrom(e.target.value)} style={styles.input} />
+                  <input type="date" value={expenseDateTo} onChange={(e) => setExpenseDateTo(e.target.value)} style={styles.input} />
+                </div>
+                <div style={styles.filters}>
+                  <select value={accCompanyFilter} onChange={(e) => setAccCompanyFilter(e.target.value)} style={styles.input}>
+                    <option value="">Tüm şirketler</option>
+                    {companies.map((c) => <option key={c.id} value={c.companyName}>{c.companyName}</option>)}
+                  </select>
+                  <select value={accContactFilter} onChange={(e) => setAccContactFilter(e.target.value)} style={styles.input}>
+                    <option value="">Tüm kişiler</option>
+                    {contacts.map((c) => <option key={c.id} value={c.fullName}>{c.fullName}</option>)}
+                  </select>
+                  <select value={expenseCategoryFilter} onChange={(e) => setExpenseCategoryFilter(e.target.value)} style={styles.input}>
+                    <option value="">Tüm kategoriler</option>
+                    <option value="software">Software</option>
+                    <option value="salary">Salary</option>
+                    <option value="rent">Rent</option>
+                    <option value="tax">Tax</option>
+                    <option value="other">Other</option>
+                  </select>
+                  <select value={expenseTypeFilter} onChange={(e) => setExpenseTypeFilter(e.target.value)} style={styles.input}>
+                    <option value="">Tüm türler</option>
+                    <option value="realizedIncome">Gerçekleşen gelir</option>
+                    <option value="pendingIncome">Rezervasyon geliri</option>
+                    <option value="expense">Gider</option>
+                  </select>
+                </div>
+                <div style={styles.filters}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAccYearFilter(""); setAccMonthFilter("");
+                      setAccCompanyFilter(""); setAccContactFilter("");
+                      setExpenseDateFrom(""); setExpenseDateTo("");
+                      setExpenseCategoryFilter(""); setExpenseTypeFilter(""); setExpenseRecognitionFilter("");
+                    }}
+                    style={{ ...styles.input, background: "#f3f4f6", color: "#374151", cursor: "pointer", border: "1px solid #d1d5db", fontWeight: 600 }}
+                  >
+                    ↺ Sıfırla
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const el = document.getElementById("acc-report-printable");
+                      if (!el) return;
+                      const win = window.open("", "_blank");
+                      win.document.write(`
+                        <html><head><title>Asklepius CRM — Gelir/Gider Raporu</title>
+                        <style>
+                          body { font-family: Inter, system-ui, sans-serif; padding: 24px; color: #1f2937; }
+                          h2 { color: #8A6322; margin-bottom: 8px; }
+                          table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+                          th { background: #8A6322; color: #fff; padding: 8px 12px; text-align: left; font-size: 13px; }
+                          td { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; font-size: 13px; }
+                          tr:nth-child(even) td { background: #fef9f0; }
+                          .kpi-row { display: flex; gap: 16px; margin: 16px 0; flex-wrap: wrap; }
+                          .kpi { background: #fff8ea; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 18px; }
+                          .kpi-label { font-size: 11px; color: #6b7280; }
+                          .kpi-value { font-size: 18px; font-weight: 700; }
+                          .income { color: #166534; } .expense { color: #991b1b; } .profit { color: #1e40af; }
+                        </style></head><body>
+                        ${el.innerHTML}
+                        </body></html>
+                      `);
+                      win.document.close();
+                      win.focus();
+                      setTimeout(() => { win.print(); win.close(); }, 400);
+                    }}
+                    style={{ ...styles.input, background: "#8A6322", color: "#fff", cursor: "pointer", border: "none", fontWeight: 600 }}
+                  >
+                    📄 PDF İndir
+                  </button>
+                </div>
+              </Panel>
+            </div>
+
+            {/* ── Özet KPI'lar (filtreye göre) ── */}
             <Panel title="Muhasebe Özeti">
               <div style={styles.kpiGrid}>
                 <div style={styles.kpiCard}><div style={styles.kpiLabel}>Gerçekleşen gelir</div><div style={styles.kpiValue}>{money(accountingSummary.realizedIncome)}</div></div>
@@ -1945,9 +2053,9 @@ ${message.body || message.snippet}`,
                   <YAxis />
                   <Tooltip formatter={(v) => money(v)} />
                   <Legend />
-                  <Bar dataKey="realizedIncome" fill="#57C4E5" />
-                  <Bar dataKey="pendingIncome" fill="#E0A23F" />
-                  <Bar dataKey="expense" fill="#C98B2E" />
+                  <Bar dataKey="realizedIncome" name="Gerçekleşen Gelir" fill="#57C4E5" />
+                  <Bar dataKey="pendingIncome" name="Rezervasyon Geliri" fill="#E0A23F" />
+                  <Bar dataKey="expense" name="Gider" fill="#C98B2E" />
                 </BarChart>
               </ResponsiveContainer>
             </Panel>
@@ -1988,6 +2096,93 @@ ${message.body || message.snippet}`,
                       ))}
                     </tbody>
                   </table>
+                </div>
+              </Panel>
+            </div>
+
+            {/* ── Detaylı Gelir / Gider Tablosu (PDF'e dahil) ── */}
+            <div style={{ gridColumn: "1 / -1" }}>
+              <Panel title="Detaylı Gelir / Gider Listesi">
+                <div id="acc-report-printable">
+                  <h2 style={{ color: "#8A6322", marginBottom: 8 }}>
+                    Asklepius CRM — Gelir / Gider Raporu
+                    {accYearFilter ? ` (${accYearFilter})` : ""}
+                    {accMonthFilter ? ` / ${accMonthFilter}` : ""}
+                    {accCompanyFilter ? ` — ${accCompanyFilter}` : ""}
+                  </h2>
+
+                  {/* Özet KPI'lar */}
+                  <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
+                    {[
+                      { label: "Gerçekleşen Gelir", value: accountingSummary.realizedIncome, cls: "income" },
+                      { label: "Rezervasyon Geliri", value: accountingSummary.pendingIncome, cls: "income" },
+                      { label: "Toplam Gelir", value: accountingSummary.totalIncome, cls: "income" },
+                      { label: "Gider", value: accountingSummary.expense, cls: "expense" },
+                      { label: "Kar / Zarar", value: accountingSummary.profitLoss, cls: "profit" },
+                    ].map(({ label, value, cls }) => (
+                      <div key={label} style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px", minWidth: 130 }}>
+                        <div style={{ fontSize: 11, color: "#6b7280" }}>{label}</div>
+                        <div style={{
+                          fontSize: 18, fontWeight: 700,
+                          color: cls === "income" ? "#166534" : cls === "expense" ? "#991b1b" : "#1e40af"
+                        }}>{money(value)}</div>
+                      </div>
+                    ))}
+                    <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px", minWidth: 130 }}>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Rapor Tarihi</div>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{new Date().toLocaleDateString("tr-TR")}</div>
+                    </div>
+                  </div>
+
+                  {/* Tablo */}
+                  {accountingRows.length === 0 ? (
+                    <p>Seçilen filtrelere uygun kayıt bulunamadı.</p>
+                  ) : (
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>
+                            {["Tarih","Başlık","Şirket","Tür","Kategori","Tutar"].map((h) =>
+                              <th key={h} style={styles.th}>{h}</th>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {accountingRows
+                            .sort((a, b) => (a.date || "").localeCompare(b.date || ""))
+                            .map((r) => (
+                            <tr key={r.id}>
+                              <td style={styles.td}>{r.date || "-"}</td>
+                              <td style={styles.td}>{r.title || "-"}</td>
+                              <td style={styles.td}>{r.customer || "-"}</td>
+                              <td style={styles.td}>
+                                <span style={{
+                                  padding: "2px 8px", borderRadius: 99, fontSize: 12, fontWeight: 600,
+                                  background: r.kind === "realizedIncome" ? "#dcfce7"
+                                    : r.kind === "pendingIncome" ? "#fef9c3"
+                                    : "#fee2e2",
+                                  color: r.kind === "realizedIncome" ? "#166534"
+                                    : r.kind === "pendingIncome" ? "#92400e"
+                                    : "#991b1b",
+                                }}>
+                                  {r.kind === "realizedIncome" ? "Gelir"
+                                    : r.kind === "pendingIncome" ? "Rezervasyon"
+                                    : "Gider"}
+                                </span>
+                              </td>
+                              <td style={styles.td}>{r.category || r.source || "-"}</td>
+                              <td style={{
+                                ...styles.td, fontWeight: 600,
+                                color: r.kind === "expense" ? "#991b1b" : "#166534"
+                              }}>
+                                {r.kind === "expense" ? "−" : "+"}{money(r.amount)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               </Panel>
             </div>
