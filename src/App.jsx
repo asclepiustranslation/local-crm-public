@@ -329,6 +329,9 @@ export default function App() {
   const [accContactFilter, setAccContactFilter] = useState("");
 
   const [importMessage, setImportMessage] = useState("");
+  const [contactSearch, setContactSearch] = useState("");
+  const [companySearch, setCompanySearch] = useState("");
+  const [previousView, setPreviousView] = useState("dashboard");
   const [editState, setEditState] = useState({ type: null, item: null });
 
   const [activityForm, setActivityForm] = useState({
@@ -648,7 +651,7 @@ ${message.body || message.snippet}`,
       relatedContactId: target.entityType === "contact" ? target.entityId : null,
       relatedDealId: target.entityType === "deal" ? target.entityId : null,
       relatedProjectId: target.entityType === "project" ? target.entityId : null,
-      createdAt: new Date().toISOString(),
+      createdAt: message.date ? new Date(message.date).toISOString() : new Date().toISOString(),
       createdBy: "Gmail Import",
       source: "gmail-manual",
     };
@@ -1224,6 +1227,7 @@ ${message.body || message.snippet}`,
   const openDetail = (type, id) => {
     setActiveDetailType(type);
     setActiveDetailId(id);
+    setPreviousView(view);
     setView("details");
   };
 
@@ -1537,7 +1541,25 @@ ${message.body || message.snippet}`,
         {view === "companies" && (
           <section style={styles.grid2}>
             <Panel title="Şirketler Listesi">
-              {companies.map((c) => (
+              <input
+                type="text"
+                placeholder="Şirket adı, şehir veya e-posta ile ara…"
+                value={companySearch}
+                onChange={(e) => setCompanySearch(e.target.value)}
+                style={{ ...styles.input, marginBottom: 12, width: "100%", boxSizing: "border-box" }}
+              />
+              {companies
+                .filter((c) => {
+                  if (!companySearch) return true;
+                  const q = companySearch.toLowerCase();
+                  return (
+                    (c.companyName || "").toLowerCase().includes(q) ||
+                    (c.billingCity || "").toLowerCase().includes(q) ||
+                    (c.email || "").toLowerCase().includes(q) ||
+                    (c.phone || "").toLowerCase().includes(q)
+                  );
+                })
+                .map((c) => (
                 <Card key={c.id}>
                   <b>{c.companyName}</b>
                   <div>{c.billingCity} · {c.phone} · {c.email || "-"}</div>
@@ -1589,7 +1611,25 @@ ${message.body || message.snippet}`,
         {view === "contacts" && (
           <section style={styles.grid2}>
             <Panel title="Kişiler Listesi">
-              {enrichedContacts.map((c) => {
+              <input
+                type="text"
+                placeholder="İsim, şirket veya e-posta ile ara…"
+                value={contactSearch}
+                onChange={(e) => setContactSearch(e.target.value)}
+                style={{ ...styles.input, marginBottom: 12, width: "100%", boxSizing: "border-box" }}
+              />
+              {enrichedContacts
+                .filter((c) => {
+                  if (!contactSearch) return true;
+                  const q = contactSearch.toLowerCase();
+                  return (
+                    (c.fullName || "").toLowerCase().includes(q) ||
+                    (c.company || "").toLowerCase().includes(q) ||
+                    (c.email1 || "").toLowerCase().includes(q) ||
+                    (c.mobile || "").toLowerCase().includes(q)
+                  );
+                })
+                .map((c) => {
                 const companyMatch = companyMap.get(String(c.company || "").toLowerCase());
                 return (
                   <Card key={c.id}>
@@ -1806,6 +1846,12 @@ ${message.body || message.snippet}`,
         {view === "details" && (
           <section style={styles.grid2}>
             <Panel title="Kayıt Detay">
+              <button
+                onClick={() => setView(previousView)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#8A6322", fontWeight: 600, fontSize: 13, marginBottom: 12, padding: 0, display: "flex", alignItems: "center", gap: 4 }}
+              >
+                ← Geri Dön
+              </button>
               {activeRecord ? (
                 <>
                   <p><b>{entityLabel(activeRecord, activeDetailType)}</b></p>
@@ -2497,6 +2543,13 @@ ${message.body || message.snippet}`,
         {view === "edit" && editState.item && (
           <section style={styles.grid2}>
             <Panel title="Kayıt Düzenle">
+              <button
+                type="button"
+                onClick={() => setView(previousView)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#8A6322", fontWeight: 600, fontSize: 13, marginBottom: 12, padding: 0, display: "flex", alignItems: "center", gap: 4 }}
+              >
+                ← Geri Dön
+              </button>
               <form onSubmit={saveEdit} style={styles.form}>
                 {editState.type === "company" && (
                   <>
