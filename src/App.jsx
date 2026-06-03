@@ -1506,7 +1506,7 @@ ${message.body || message.snippet}`,
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie data={reportDealStatusPie} dataKey="value" nameKey="name" outerRadius={90} label>
-                    {dealStatusPie.map((_, idx) => (
+                    {reportDealStatusPie.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                     ))}
                   </Pie>
@@ -2058,7 +2058,7 @@ ${message.body || message.snippet}`,
                 </button>
               </div>
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={monthlyRevenue}>
+                <BarChart data={reportMonthlyRevenue}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -2071,7 +2071,7 @@ ${message.body || message.snippet}`,
             <Panel title="Status Dağılımı">
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
-                  <Pie data={dealStatusPie} dataKey="value" nameKey="name" outerRadius={90} label>
+                  <Pie data={reportDealStatusPie} dataKey="value" nameKey="name" outerRadius={90} label>
                     {reportDealStatusPie.map((_, idx) => <Cell key={idx} fill={COLORS[idx % COLORS.length]} />)}
                   </Pie>
                   <Tooltip />
