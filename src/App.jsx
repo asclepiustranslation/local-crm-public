@@ -795,6 +795,29 @@ ${message.body || message.snippet}`,
     reportToDate,
   ]);
 
+  const reportMonthlyRevenue = useMemo(() => {
+    const map = {};
+    reportDeals
+      .filter((d) => ["closed won", "reservasyon", "reservasyonlu", "reserved"].includes(d.status))
+      .forEach((d) => {
+        const month = String(d.dateReceived || d.estCloseDate || d.createdAt || "").slice(0, 7);
+        if (!month) return;
+        map[month] = (map[month] || 0) + Number(d.estRevenue || 0);
+      });
+    return Object.entries(map)
+      .sort((a, b) => a[0].localeCompare(b[0]))
+      .map(([name, value]) => ({ name, value }));
+  }, [reportDeals]);
+
+  const reportDealStatusPie = useMemo(() => {
+    const map = {};
+    reportDeals.forEach((d) => {
+      const key = d.status || "belirsiz";
+      map[key] = (map[key] || 0) + 1;
+    });
+    return Object.entries(map).map(([name, value]) => ({ name, value }));
+  }, [reportDeals]);
+
   const accountingRows = useMemo(() => {
     const dealIncomeRows = deals
       .filter((d) => d.status === "closed won" || d.status === "reserved" || d.status === "reservasyon" || d.status === "reservasyonlu")
@@ -1469,7 +1492,7 @@ ${message.body || message.snippet}`,
 
             <Panel title="Aylık Gelir">
               <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={monthlyRevenue}>
+                <BarChart data={reportMonthlyRevenue}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
@@ -1482,7 +1505,7 @@ ${message.body || message.snippet}`,
             <Panel title="Deal Status">
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
-                  <Pie data={dealStatusPie} dataKey="value" nameKey="name" outerRadius={90} label>
+                  <Pie data={reportDealStatusPie} dataKey="value" nameKey="name" outerRadius={90} label>
                     {dealStatusPie.map((_, idx) => (
                       <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
                     ))}
@@ -2049,7 +2072,7 @@ ${message.body || message.snippet}`,
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie data={dealStatusPie} dataKey="value" nameKey="name" outerRadius={90} label>
-                    {dealStatusPie.map((_, idx) => <Cell key={idx} fill={COLORS[idx % COLORS.length]} />)}
+                    {reportDealStatusPie.map((_, idx) => <Cell key={idx} fill={COLORS[idx % COLORS.length]} />)}
                   </Pie>
                   <Tooltip />
                   <Legend />
@@ -2670,11 +2693,6 @@ const styles = {
     flexDirection: "column",
     justifyContent: "space-between",
     gap: 24,
-    position: "sticky",
-    top: 0,
-    alignSelf: "start",
-    height: "100vh",
-    overflowY: "auto",
   },
   logoWrap: { background: "#fffdf8", padding: 10, borderRadius: 18, width: "fit-content", marginBottom: 14 },
   logo: { width: 120, display: "block" },
