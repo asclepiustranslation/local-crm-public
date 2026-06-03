@@ -206,33 +206,6 @@ export default function App() {
   const [yearFilter, setYearFilter] = useState("2026");
   const [monthFilter, setMonthFilter] = useState("");
   const [importMessage, setImportMessage] = useState("");
-  const normalizeDealStatus = (value) => {
-    const v = String(value || "").trim().toLowerCase();
-    if (!v) return "";
-    if (["closed won", "won", "kazanıldı", "kazanildi"].includes(v)) return "closed won";
-    if (["lost / cancelled", "lost/cancelled", "lost cancelled", "lost", "cancelled", "canceled", "iptal", "lost / canceled"].includes(v)) return "lost / cancelled";
-    return v;
-  };
-
-  const parseCurrencyNumber = (value) => {
-    if (typeof value === "number") return Number.isFinite(value) ? value : 0;
-    const cleaned = String(value || "").replace(/[^0-9,.-]/g, "").replace(/,(?=\d{3}\b)/g, "").replace(/,/g, ".");
-    const parsed = Number(cleaned);
-    return Number.isFinite(parsed) ? parsed : 0;
-  };
-
-  const handleCsvFileSelect = async (event, mode) => {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (!file) return;
-    try {
-      await importCSV(file, mode);
-    } catch (error) {
-      console.error("CSV import error:", error);
-      setImportMessage(`CSV içe aktarma hatası: ${error?.message || "Bilinmeyen hata"}`);
-    }
-  };
-
   const [search, setSearch] = useState("");
 
   const [activityForm, setActivityForm] = useState({
@@ -472,12 +445,12 @@ export default function App() {
           contactPerson: firstNonEmpty(r.contactperson, r["contact person"]),
           name: firstNonEmpty(r.name),
           dateReceived: firstNonEmpty(r.datereceived, r["date received"]),
-          status: normalizeDealStatus(firstNonEmpty(r.status)),
-          estRevenue: parseCurrencyNumber(firstNonEmpty(r.estrevenue, r["est. revenue"], 0)),
+          status: firstNonEmpty(r.status).toLowerCase(),
+          estRevenue: Number(firstNonEmpty(r.estrevenue, r["est. revenue"], 0) || 0),
           estCloseDate: firstNonEmpty(r.estclosedate, r["est. close date"]),
           createdAt: new Date().toISOString(),
         }))
-        .filter((x) => x.customer || x.contactPerson || x.name);
+        .filter((x) => x.customer || x.name);
       setDeals((prev) => [...prev, ...mapped]);
       setImportMessage(`${mapped.length} deal içe aktarıldı.`);
     }
@@ -821,7 +794,7 @@ export default function App() {
           <section style={styles.grid2}>
             <Panel title="Şirketler CSV">
               <label style={styles.fileLabel}>
-                <input type="file" accept=".csv" style={styles.fileInput} onClick={(e) => { e.currentTarget.value = ""; }} onChange={(e) => handleCsvFileSelect(e, "companies")} />
+                <input type="file" accept=".csv" style={styles.fileInput} onChange={(e) => e.target.files?.[0] && importCSV(e.target.files[0], "companies")} />
                 Şirket CSV yükle
               </label>
               <p style={styles.helpText}>Company Name, City (Billing), Phone, Mobile, Email, Next Step, Last Activity, Owner</p>
@@ -829,7 +802,7 @@ export default function App() {
 
             <Panel title="Kişiler CSV">
               <label style={styles.fileLabel}>
-                <input type="file" accept=".csv" style={styles.fileInput} onClick={(e) => { e.currentTarget.value = ""; }} onChange={(e) => handleCsvFileSelect(e, "contacts")} />
+                <input type="file" accept=".csv" style={styles.fileInput} onChange={(e) => e.target.files?.[0] && importCSV(e.target.files[0], "contacts")} />
                 Kişi CSV yükle
               </label>
               <p style={styles.helpText}>Full Name, Company, Job Title, Mobile, Business, Email 1, City (Business), Next Step, Last Activity, Owner</p>
@@ -837,7 +810,7 @@ export default function App() {
 
             <Panel title="Deals CSV">
               <label style={styles.fileLabel}>
-                <input type="file" accept=".csv" style={styles.fileInput} onClick={(e) => { e.currentTarget.value = ""; }} onChange={(e) => handleCsvFileSelect(e, "deals")} />
+                <input type="file" accept=".csv" style={styles.fileInput} onChange={(e) => e.target.files?.[0] && importCSV(e.target.files[0], "deals")} />
                 Deal CSV yükle
               </label>
               <p style={styles.helpText}>Customer, Contact Person, Name, Date Received, Status, Est. Revenue, Est. Close Date</p>
@@ -845,7 +818,7 @@ export default function App() {
 
             <Panel title="Projects CSV">
               <label style={styles.fileLabel}>
-                <input type="file" accept=".csv" style={styles.fileInput} onClick={(e) => { e.currentTarget.value = ""; }} onChange={(e) => handleCsvFileSelect(e, "projects")} />
+                <input type="file" accept=".csv" style={styles.fileInput} onChange={(e) => e.target.files?.[0] && importCSV(e.target.files[0], "projects")} />
                 Project CSV yükle
               </label>
               <p style={styles.helpText}>Company, Contact Person, Name, Status, Start Date, Due Date, Est. Revenue, Owner</p>
@@ -951,7 +924,7 @@ function InputField({ label, value, onChange }) {
 
 const styles = {
   app: { display: "grid", gridTemplateColumns: "300px 1fr", minHeight: "100vh", background: "#fff8ea", fontFamily: "Inter, system-ui, sans-serif" },
-  sidebar: { background: "linear-gradient(180deg, #E0A23F 0%, #C98B2E 100%)", padding: 24, color: "#fff", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 24 },
+  sidebar: { background: "linear-gradient(180deg, #E0A23F 0%, #C98B2E 100%)", padding: 24, color: "#fff", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 24, position: "sticky", top: 0, alignSelf: "start", height: "100vh", overflowY: "auto" },
   logoWrap: { background: "#fffdf8", padding: 10, borderRadius: 18, width: "fit-content", marginBottom: 14 },
   logo: { width: 120, display: "block" },
   brand: { fontSize: 30, fontWeight: 900, letterSpacing: 1, color: "#fff" },
