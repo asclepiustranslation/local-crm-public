@@ -1,0 +1,8 @@
+cd ~/Masaüstü/cviri-crm
+
+npm run dev
+
+git add .
+git commit -m "değişiklik açıklaması"
+git push
+

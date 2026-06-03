@@ -1161,13 +1161,28 @@ ${message.body || message.snippet}`,
   };
 
   const addProject = () => {
-    if (!projectForm.name || !projectForm.companyId) return;
-    const company = getCompanyById(projectForm.companyId);
+    if (!projectForm.name?.trim()) {
+      setImportMessage("Proje kaydı için proje adı zorunlu.");
+      return;
+    }
+    if (!projectForm.companyId && !projectForm.contactPersonId) {
+      setImportMessage("Proje kaydı için şirket veya kişi seçimi zorunlu.");
+      return;
+    }
+    const company = projectForm.companyId ? getCompanyById(projectForm.companyId) : null;
     const contact = projectForm.contactPersonId ? getContactById(projectForm.contactPersonId) : null;
+    if (projectForm.companyId && !company?.companyName) {
+      setImportMessage("Seçilen şirket bulunamadı. Lütfen şirketi yeniden seçin.");
+      return;
+    }
+    if (projectForm.contactPersonId && !contact?.fullName) {
+      setImportMessage("Seçilen kişi bulunamadı. Lütfen kişiyi yeniden seçin.");
+      return;
+    }
     const newProject = {
       id: crypto.randomUUID(),
-      name: projectForm.name,
-      company: company?.companyName || "",
+      name: projectForm.name.trim(),
+      company: company?.companyName || contact?.company || "",
       contactPerson: contact?.fullName || "",
       status: projectForm.status,
       startDate: projectForm.startDate,
@@ -1178,6 +1193,7 @@ ${message.body || message.snippet}`,
       createdAt: new Date().toISOString(),
     };
     setProjects((prev) => [...prev, newProject]);
+    setImportMessage(`Proje kaydedildi: ${newProject.name}`);
     resetProjectForm();
     setOpenForms((p) => ({ ...p, project: false }));
   };
