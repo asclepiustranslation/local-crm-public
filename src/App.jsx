@@ -15,6 +15,12 @@ import {
 } from "recharts";
 import BackupPanel from "./BackupPanel";
 
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(() => {});
+  });
+}
+
 const LS_COMPANIES = "asklepius-companies";
 const LS_CONTACTS = "asklepius-contacts";
 const LS_DEALS = "asklepius-deals";
