@@ -736,7 +736,11 @@ ${message.body || message.snippet}`,
         return [d.customer, d.contactPerson, d.name, d.status].join(" ").toLowerCase().includes(q);
       })
       .slice()
-      .sort((a, b) => new Date(b.createdAt || b.dateReceived || 0) - new Date(a.createdAt || a.dateReceived || 0));
+      .sort((a, b) => {
+        const dateA = String(a.dateReceived || a.createdAt || "");
+        const dateB = String(b.dateReceived || b.createdAt || "");
+        return dateB.localeCompare(dateA);
+      });
   }, [deals, statusFilter, companyFilter, contactFilter, yearFilter, monthFilter, search]);
 
   const monthlyRevenue = useMemo(() => {
@@ -774,7 +778,12 @@ ${message.body || message.snippet}`,
     () => deals
       .filter((d) => ["reservasyonlu", "reserved", "reservasyon"].includes(d.status))
       .slice()
-      .sort((a, b) => new Date(b.createdAt || b.dateReceived || 0) - new Date(a.createdAt || a.dateReceived || 0)),
+      .sort((a, b) => {
+        // En yakın tarih (en küçük dateReceived) üstte
+        const dateA = String(a.dateReceived || a.createdAt || "");
+        const dateB = String(b.dateReceived || b.createdAt || "");
+        return dateA.localeCompare(dateB);
+      }),
     [deals]
   );
 
@@ -1520,7 +1529,12 @@ ${message.body || message.snippet}`,
                   {deals
                     .filter((d) => d.status === "closed won")
                     .slice()
-                    .sort((a, b) => new Date(b.createdAt || b.dateReceived || 0) - new Date(a.createdAt || a.dateReceived || 0))
+                    .sort((a, b) => {
+                      // En son kazanılan üstte
+                      const dateA = String(a.dateReceived || a.createdAt || "");
+                      const dateB = String(b.dateReceived || b.createdAt || "");
+                      return dateB.localeCompare(dateA);
+                    })
                     .map((d) => (
                       <li key={d.id} style={{ padding: "10px 12px", borderRadius: 10, background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>{d.name}</div>
