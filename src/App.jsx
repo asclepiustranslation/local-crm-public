@@ -1483,55 +1483,13 @@ ${message.body || message.snippet}`,
       </aside>
 
       <main style={{ ...styles.main, flex: 1, minWidth: 0 }}>
-        <header style={styles.header}>
-          <div>
-            <h1 style={styles.h1}>Asklepius CRM</h1>
-            <p style={styles.mutedDark}>Şirket, kişi, deal, project ve aktivite takibi</p>
-          </div>
-          <div style={styles.statsRow}>
-            <Stat label="Deal Sayısı" value={dealStats.count} />
-            <Stat label="Won Deal" value={dealStats.wonCount} />
-            <Stat label="Bekleyen" value={dealStats.pending} />
-            <Stat label="Toplam Gelir" value={money(dealStats.totalRevenue)} />
-          </div>
-        </header>
-
         {importMessage && <div style={styles.notice}>{importMessage}</div>}
 
         {view === "dashboard" && (
           <section style={styles.grid2}>
             <div style={{ ...styles.kpiGrid, gridColumn: "1 / -1" }}>
-              <div style={styles.kpiCard}><div style={styles.kpiLabel}>Şirket</div><div style={styles.kpiValue}>{kpiSummary.companies}</div></div>
-              <div style={styles.kpiCard}><div style={styles.kpiLabel}>Kişi</div><div style={styles.kpiValue}>{kpiSummary.contacts}</div></div>
-              <div style={styles.kpiCard}><div style={styles.kpiLabel}>Açık Deal</div><div style={styles.kpiValue}>{kpiSummary.openDeals}</div></div>
               <div style={styles.kpiCard}><div style={styles.kpiLabel}>Rezervasyonlu Deal</div><div style={styles.kpiValue}>{kpiSummary.reservedDeals}</div></div>
             </div>
-
-            <Panel title="Aylık Gelir">
-              <ResponsiveContainer width="100%" height={280}>
-                <BarChart data={reportMonthlyRevenue}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip formatter={(v) => money(v)} />
-                  <Bar dataKey="value" fill="#57C4E5" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Panel>
-
-            <Panel title="Deal Status">
-              <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                  <Pie data={reportDealStatusPie} dataKey="value" nameKey="name" outerRadius={90} label>
-                    {reportDealStatusPie.map((_, idx) => (
-                      <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </Panel>
 
             <div style={{ gridColumn: "1 / -1" }}>
               <Panel title="Rezervasyonlu İşler">
