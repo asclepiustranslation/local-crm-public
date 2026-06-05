@@ -15,12 +15,6 @@ import {
 } from "recharts";
 import BackupPanel from "./BackupPanel";
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
-  });
-}
-
 const LS_COMPANIES = "asklepius-companies";
 const LS_CONTACTS = "asklepius-contacts";
 const LS_DEALS = "asklepius-deals";
@@ -1511,10 +1505,6 @@ ${message.body || message.snippet}`,
               <div style={styles.kpiCard}><div style={styles.kpiLabel}>Kişi</div><div style={styles.kpiValue}>{kpiSummary.contacts}</div></div>
               <div style={styles.kpiCard}><div style={styles.kpiLabel}>Açık Deal</div><div style={styles.kpiValue}>{kpiSummary.openDeals}</div></div>
               <div style={styles.kpiCard}><div style={styles.kpiLabel}>Rezervasyonlu Deal</div><div style={styles.kpiValue}>{kpiSummary.reservedDeals}</div></div>
-              <div style={styles.kpiCard}><div style={styles.kpiLabel}>Gerçekleşen Gelir</div><div style={styles.kpiValue}>{money(kpiSummary.realizedIncome)}</div></div>
-              <div style={styles.kpiCard}><div style={styles.kpiLabel}>Rezervasyon Geliri</div><div style={styles.kpiValue}>{money(kpiSummary.pendingIncome)}</div></div>
-              <div style={styles.kpiCard}><div style={styles.kpiLabel}>Toplam Gider</div><div style={styles.kpiValue}>{money(kpiSummary.expense)}</div></div>
-              <div style={styles.kpiCard}><div style={styles.kpiLabel}>Net Kar / Zarar</div><div style={styles.kpiValue}>{money(kpiSummary.profitLoss)}</div></div>
             </div>
 
             <Panel title="Aylık Gelir">
