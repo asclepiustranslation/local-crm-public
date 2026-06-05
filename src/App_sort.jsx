@@ -737,8 +737,8 @@ ${message.body || message.snippet}`,
       })
       .slice()
       .sort((a, b) => {
-        const dateA = String(a.dateReceived || a.createdAt || "");
-        const dateB = String(b.dateReceived || b.createdAt || "");
+        const dateA = String(a.estCloseDate || a.dateReceived || a.createdAt || "");
+        const dateB = String(b.estCloseDate || b.dateReceived || b.createdAt || "");
         return dateB.localeCompare(dateA);
       });
   }, [deals, statusFilter, companyFilter, contactFilter, yearFilter, monthFilter, search]);
@@ -779,9 +779,9 @@ ${message.body || message.snippet}`,
       .filter((d) => ["reservasyonlu", "reserved", "reservasyon"].includes(d.status))
       .slice()
       .sort((a, b) => {
-        // En yakın tarih (en küçük dateReceived) üstte
-        const dateA = String(a.dateReceived || a.createdAt || "");
-        const dateB = String(b.dateReceived || b.createdAt || "");
+        // En yakın kapanış tarihi üstte
+        const dateA = String(a.estCloseDate || a.dateReceived || a.createdAt || "");
+        const dateB = String(b.estCloseDate || b.dateReceived || b.createdAt || "");
         return dateA.localeCompare(dateB);
       }),
     [deals]
@@ -1530,9 +1530,9 @@ ${message.body || message.snippet}`,
                     .filter((d) => d.status === "closed won")
                     .slice()
                     .sort((a, b) => {
-                      // En son kazanılan üstte
-                      const dateA = String(a.dateReceived || a.createdAt || "");
-                      const dateB = String(b.dateReceived || b.createdAt || "");
+                      // En son kapanan üstte
+                      const dateA = String(a.estCloseDate || a.dateReceived || a.createdAt || "");
+                      const dateB = String(b.estCloseDate || b.dateReceived || b.createdAt || "");
                       return dateB.localeCompare(dateA);
                     })
                     .map((d) => (
