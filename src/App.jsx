@@ -168,12 +168,19 @@ function parseCSVLine(text) {
   return result.map((s) => s.trim());
 }
 
+function parseDate(val) {
+  if (!val) return "";
+  // "2024-05-05 00:00:00" → "2024-05-05"
+  return String(val).trim().slice(0, 10);
+}
+
 function normalizeHeader(h) {
   return String(h || "")
     .trim()
     .toLowerCase()
-    .replace(/[()]/g, "")
+    .replace(/[()\.]/g, "")
     .replace(/[^a-z0-9ğüşöçıİĞÜŞÖÇ]+/gi, "-")
+    .replace(/-{2,}/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
@@ -1398,10 +1405,10 @@ ${message.body || message.snippet}`,
           customer: firstNonEmpty(r.customer),
           contactPerson: firstNonEmpty(r.contactperson, r["contact-person"]),
           name: firstNonEmpty(r.name),
-          dateReceived: firstNonEmpty(r.datereceived, r["date-received"]),
+          dateReceived: parseDate(firstNonEmpty(r.datereceived, r["date-received"])),
           status: firstNonEmpty(r.status).toLowerCase(),
           estRevenue: Number(firstNonEmpty(r.estrevenue, r["est-revenue"], 0) || 0),
-          estCloseDate: firstNonEmpty(r.estclosedate, r["est-close-date"]),
+          estCloseDate: parseDate(firstNonEmpty(r.estclosedate, r["est-close-date"], r["estclosedate"], r["est-close-date"])),
           createdAt: new Date().toISOString(),
         }))
         .filter((x) => x.customer && x.name);
