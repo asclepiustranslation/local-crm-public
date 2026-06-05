@@ -734,7 +734,9 @@ ${message.body || message.snippet}`,
         if (!search) return true;
         const q = search.toLowerCase();
         return [d.customer, d.contactPerson, d.name, d.status].join(" ").toLowerCase().includes(q);
-      });
+      })
+      .slice()
+      .sort((a, b) => new Date(b.createdAt || b.dateReceived || 0) - new Date(a.createdAt || a.dateReceived || 0));
   }, [deals, statusFilter, companyFilter, contactFilter, yearFilter, monthFilter, search]);
 
   const monthlyRevenue = useMemo(() => {
@@ -769,7 +771,10 @@ ${message.body || message.snippet}`,
   }, [deals]);
 
   const reservedDeals = useMemo(
-    () => deals.filter((d) => ["reservasyonlu", "reserved", "reservasyon"].includes(d.status)),
+    () => deals
+      .filter((d) => ["reservasyonlu", "reserved", "reservasyon"].includes(d.status))
+      .slice()
+      .sort((a, b) => new Date(b.createdAt || b.dateReceived || 0) - new Date(a.createdAt || a.dateReceived || 0)),
     [deals]
   );
 
@@ -1491,54 +1496,41 @@ ${message.body || message.snippet}`,
               <div style={styles.kpiCard}><div style={styles.kpiLabel}>Rezervasyonlu Deal</div><div style={styles.kpiValue}>{kpiSummary.reservedDeals}</div></div>
             </div>
 
-            <div style={{ gridColumn: "1 / -1" }}>
-              <Panel title="Rezervasyonlu İşler">
-                {reservedDeals.length === 0 ? (
-                  <p>Rezervasyonlu iş yok.</p>
-                ) : (
-                  <div style={{ overflowX: "auto" }}>
-                    <table style={styles.table}>
-                      <thead>
-                        <tr>
-                          {[
-                            "Deal",
-                            "Şirket",
-                            "Kişi",
-                            "Alınma Tarihi",
-                            "Tahmini Gelir",
-                            "Kapanış",
-                            "Statü",
-                            "İşlem",
-                          ].map((h) => (
-                            <th key={h} style={styles.th}>{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reservedDeals.map((d) => (
-                          <tr key={d.id}>
-                            <td style={styles.td}>{d.name}</td>
-                            <td style={styles.td}>{d.customer}</td>
-                            <td style={styles.td}>{d.contactPerson || "-"}</td>
-                            <td style={styles.td}>{d.dateReceived || "-"}</td>
-                            <td style={styles.td}>{money(d.estRevenue)}</td>
-                            <td style={styles.td}>{d.estCloseDate || "-"}</td>
-                            <td style={styles.td}>
-                              <select value={d.status} onChange={(e) => updateDealStatus(d.id, e.target.value)} style={styles.input}>
-                                {dealStatuses.map((s) => (
-                                  <option key={s} value={s}>{s}</option>
-                                ))}
-                              </select>
-                            </td>
-                            <td style={styles.td}><button onClick={() => openDetail("deal", d.id)} style={styles.smallBtn}>Detay</button></td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </Panel>
-            </div>
+            <Panel title="Rezervasyonlu İşler">
+              {reservedDeals.length === 0 ? (
+                <p style={{ color: "#6B7280", fontSize: 14 }}>Rezervasyonlu iş yok.</p>
+              ) : (
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {reservedDeals.map((d) => (
+                    <li key={d.id} style={{ padding: "10px 12px", borderRadius: 10, background: "#fff8ea", border: "1px solid #f1e4c8" }}>
+                      <div style={{ fontWeight: 600, fontSize: 14 }}>{d.name}</div>
+                      <div style={{ fontSize: 13, color: "#6B7280" }}>{d.customer} · {d.dateReceived || "-"} · {money(d.estRevenue)}</div>
+                      <button onClick={() => openDetail("deal", d.id)} style={{ ...styles.smallBtn, marginTop: 6 }}>Detay</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Panel>
+
+            <Panel title="Closed Won">
+              {deals.filter((d) => d.status === "closed won").length === 0 ? (
+                <p style={{ color: "#6B7280", fontSize: 14 }}>Henüz closed won deal yok.</p>
+              ) : (
+                <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {deals
+                    .filter((d) => d.status === "closed won")
+                    .slice()
+                    .sort((a, b) => new Date(b.createdAt || b.dateReceived || 0) - new Date(a.createdAt || a.dateReceived || 0))
+                    .map((d) => (
+                      <li key={d.id} style={{ padding: "10px 12px", borderRadius: 10, background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
+                        <div style={{ fontWeight: 600, fontSize: 14 }}>{d.name}</div>
+                        <div style={{ fontSize: 13, color: "#6B7280" }}>{d.customer} · {d.dateReceived || "-"} · {money(d.estRevenue)}</div>
+                        <button onClick={() => openDetail("deal", d.id)} style={{ ...styles.smallBtn, marginTop: 6 }}>Detay</button>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </Panel>
           </section>
         )}
 
