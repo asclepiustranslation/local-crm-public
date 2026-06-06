@@ -81,6 +81,7 @@ const seedDeals = [
     estRevenue: 4500,
     estCloseDate: "2026-05-30",
     note: "",
+    projectId: "",
     createdAt: new Date().toISOString(),
   },
 ];
@@ -98,6 +99,8 @@ const seedProjects = [
     owner: "Ayşe",
     note: "",
     description: "",
+    updates: [],
+    dealIds: [],
     createdAt: new Date().toISOString(),
   },
 ];
@@ -402,6 +405,7 @@ export default function App() {
     estRevenue: "",
     estCloseDate: "",
     note: "",
+    projectId: "",
   });
 
   const [projectForm, setProjectForm] = useState({
@@ -415,6 +419,11 @@ export default function App() {
     owner: "",
     note: "",
     description: "",
+  });
+
+  const [projectUpdateForm, setProjectUpdateForm] = useState({
+    date: "",
+    note: "",
   });
 
   const [googleAuth, setGoogleAuth] = useState(() => {
@@ -1176,9 +1185,19 @@ ${message.body || message.snippet}`,
       estRevenue: Number(dealForm.estRevenue),
       estCloseDate: dealForm.estCloseDate,
       note: dealForm.note,
+      projectId: dealForm.projectId || "",
       createdAt: new Date().toISOString(),
     };
     setDeals((prev) => [...prev, newDeal]);
+    if (dealForm.projectId) {
+      setProjects((prev) =>
+        prev.map((p) =>
+          p.id === dealForm.projectId
+            ? { ...p, dealIds: Array.from(new Set([...(p.dealIds || []), newDeal.id])) }
+            : p
+        )
+      );
+    }
     resetDealForm();
     setOpenForms((p) => ({ ...p, deal: false }));
   };
@@ -1214,12 +1233,35 @@ ${message.body || message.snippet}`,
       owner: projectForm.owner,
       note: projectForm.note,
       description: projectForm.description,
+      updates: [],
+      dealIds: [],
       createdAt: new Date().toISOString(),
     };
     setProjects((prev) => [...prev, newProject]);
     setImportMessage(`Proje kaydedildi: ${newProject.name}`);
     resetProjectForm();
     setOpenForms((p) => ({ ...p, project: false }));
+  };
+
+  const addProjectUpdate = () => {
+    if (!activeRecord || activeDetailType !== "project") return;
+    if (!projectUpdateForm.date || !projectUpdateForm.note.trim()) return;
+
+    const update = {
+      id: crypto.randomUUID(),
+      date: projectUpdateForm.date,
+      note: projectUpdateForm.note.trim(),
+    };
+
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === activeRecord.id
+          ? { ...p, updates: [...(p.updates || []), update] }
+          : p
+      )
+    );
+
+    setProjectUpdateForm({ date: "", note: "" });
   };
 
   const addExpense = () => {
@@ -1765,6 +1807,12 @@ ${message.body || message.snippet}`,
                     <input style={styles.input} placeholder="Not" value={dealForm.note} onChange={(e) => setDealForm((p) => ({ ...p, note: e.target.value }))} />
                   </div>
                   <div style={styles.filters}>
+                    <select style={styles.input} value={dealForm.projectId} onChange={(e) => setDealForm((p) => ({ ...p, projectId: e.target.value }))}>
+                      <option value="">Proje seç (opsiyonel)</option>
+                      {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </select>
+                  </div>
+                  <div style={styles.filters}>
                     <button style={styles.smallBtn} onClick={addDeal} type="button">Kaydet</button>
                     <button style={styles.smallBtn} onClick={() => { resetDealForm(); setOpenForms((p) => ({ ...p, deal: false })); }} type="button">İptal</button>
                   </div>
@@ -1933,6 +1981,91 @@ ${message.body || message.snippet}`,
                 <textarea placeholder="Açıklama" value={activityForm.body} onChange={(e) => setActivityForm({ ...activityForm, body: e.target.value })} style={styles.textarea} />
                 <button style={styles.primaryBtn}>Aktivite Ekle</button>
               </form>
+
+              {activeRecord && activeDetailType === "project" && (
+                <div style={{ marginTop: 24 }}>
+                  <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Proje Gelişmeleri</h3>
+                  <div style={{ display: "grid", gap: 8, marginBottom: 10 }}>
+                    <label style={styles.field}>
+                      <span style={styles.label}>Tarih</span>
+                      <input
+                        type="date"
+                        value={projectUpdateForm.date}
+                        onChange={(e) => setProjectUpdateForm((f) => ({ ...f, date: e.target.value }))}
+                        style={styles.input}
+                      />
+                    </label>
+                    <label style={styles.field}>
+                      <span style={styles.label}>Not</span>
+                      <textarea
+                        value={projectUpdateForm.note}
+                        onChange={(e) => setProjectUpdateForm((f) => ({ ...f, note: e.target.value }))}
+                        style={styles.textarea}
+                        placeholder="Bugünkü gelişmeyi yaz..."
+                      />
+                    </label>
+                    <button type="button" onClick={addProjectUpdate} style={styles.primaryBtn}>Gelişme Ekle</button>
+                  </div>
+
+                  {(activeRecord.updates || []).length === 0 ? (
+                    <p style={styles.mutedDark}>Henüz gelişme eklenmemiş.</p>
+                  ) : (
+                    <div style={{ maxHeight: 220, overflowY: "auto" }}>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>
+                            <th style={styles.th}>Tarih</th>
+                            <th style={styles.th}>Not</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {(activeRecord.updates || [])
+                            .slice()
+                            .sort((a, b) => b.date.localeCompare(a.date))
+                            .map((u) => (
+                              <tr key={u.id}>
+                                <td style={styles.td}>{u.date || "-"}</td>
+                                <td style={styles.td}>{u.note}</td>
+                              </tr>
+                            ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: 16 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Bağlı Deal'ler</h3>
+                    {deals.filter((d) => d.projectId === activeRecord.id).length === 0 ? (
+                      <p style={styles.mutedDark}>Bu projeye bağlı deal yok.</p>
+                    ) : (
+                      <div style={{ maxHeight: 220, overflowY: "auto" }}>
+                        <table style={styles.table}>
+                          <thead>
+                            <tr>
+                              <th style={styles.th}>Deal</th>
+                              <th style={styles.th}>Şirket</th>
+                              <th style={styles.th}>Gelir</th>
+                              <th style={styles.th}>Statü</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {deals
+                              .filter((d) => d.projectId === activeRecord.id)
+                              .map((d) => (
+                                <tr key={d.id}>
+                                  <td style={styles.td}>{d.name}</td>
+                                  <td style={styles.td}>{d.customer}</td>
+                                  <td style={{ ...styles.td, fontWeight: 600 }}>{money(d.estRevenue)}</td>
+                                  <td style={styles.td}>{d.status}</td>
+                                </tr>
+                              ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </Panel>
           </section>
         )}
