@@ -2410,7 +2410,7 @@ ${message.body || message.snippet}`,
                   )}
                 </label>
                 <label style={styles.field}><span style={styles.label}>Tip</span><select value={expenseForm.type} onChange={(e) => setExpenseForm({ ...expenseForm, type: e.target.value })} style={styles.input}><option value="one-time">One-time</option><option value="recurring">Recurring</option></select></label>
-                <label style={styles.field}><span style={styles.label}>Tanıma</span><select value={expenseForm.recognition} onChange={(e) => setExpenseForm({ ...expenseForm, recognition: e.target.value })} style={styles.input}><option value="cash">Cash</option><option value="spread">Spread</option></select></label>
+                <label style={styles.field}><span style={styles.label}>Ödeme Şekli</span><select value={expenseForm.recognition} onChange={(e) => setExpenseForm({ ...expenseForm, recognition: e.target.value })} style={styles.input}><option value="nakit">Nakit</option><option value="kart">Kart</option><option value="havale">Havale</option><option value="diger">Diğer</option></select></label>
                 {expenseForm.type === "recurring" && expenseForm.recognition === "spread" && <InputField label="Dağıtılacak ay" value={expenseForm.spreadMonths} onChange={(v) => setExpenseForm({ ...expenseForm, spreadMonths: v })} type="number" />}
                 <InputField label="Not" value={expenseForm.note} onChange={(v) => setExpenseForm({ ...expenseForm, note: v })} />
                 <button style={styles.primaryBtn} onClick={addExpense} type="button">Gider Ekle</button>
