@@ -201,6 +201,40 @@ function parseCSV(content) {
   });
 }
 
+function parseSimpleCsv(text) {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+  if (lines.length === 0) return { headers: [], rows: [] };
+  const headers = lines[0].split(";").map((h) => h.trim());
+  const rows = lines.slice(1).map((line) => {
+    const cols = line.split(";").map((c) => c.trim());
+    const row = {};
+    headers.forEach((h, i) => {
+      row[h] = cols[i] ?? "";
+    });
+    return row;
+  });
+  return { headers, rows };
+}
+
+function normalizeDateToDDMMYYYY(value) {
+  if (!value) return "";
+  if (/^\d{2}\.\d{2}\.\d{4}$/.test(value)) return value;
+  const dashMatch = value.match(/^(\d{4})[-/](\d{2})[-/](\d{2})$/);
+  if (dashMatch) {
+    const [, y, m, d] = dashMatch;
+    return `${d}.${m}.${y}`;
+  }
+  const altMatch = value.match(/^(\d{2})[-/\.](\d{2})[-/\.](\d{4})$/);
+  if (altMatch) {
+    const [, d, m, y] = altMatch;
+    return `${d}.${m}.${y}`;
+  }
+  return value;
+}
+
 function firstNonEmpty(...vals) {
   return vals.find((v) => String(v ?? "").trim() !== "") ?? "";
 }
@@ -333,6 +367,20 @@ export default function App() {
   const [expenseCategoryFilter, setExpenseCategoryFilter] = useState("");
   const [expenseTypeFilter, setExpenseTypeFilter] = useState("");
   const [expenseRecognitionFilter, setExpenseRecognitionFilter] = useState("");
+
+  // CSV ile toplu gider import state'leri
+  const [showBulkExpenseImport, setShowBulkExpenseImport] = useState(false);
+  const [bulkExpenseCsvText, setBulkExpenseCsvText] = useState("");
+  const [bulkExpenseCsvHeaders, setBulkExpenseCsvHeaders] = useState([]);
+  const [bulkExpenseFieldMapping, setBulkExpenseFieldMapping] = useState({
+    title: "",
+    amount: "",
+    date: "",
+    category: "",
+    paymentMethod: "",
+  });
+  const [bulkExpenseDefaultType, setBulkExpenseDefaultType] = useState("one-time");
+  const [bulkExpensePreviewRows, setBulkExpensePreviewRows] = useState([]);
   // Muhasebe raporu ek filtreleri
   const [accYearFilter, setAccYearFilter] = useState("");
   const [accMonthFilter, setAccMonthFilter] = useState("");
@@ -1262,6 +1310,81 @@ ${message.body || message.snippet}`,
     );
 
     setProjectUpdateForm({ date: "", note: "" });
+  };
+
+  const handleBulkExpenseCsvFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      if (typeof text !== "string") return;
+      setBulkExpenseCsvText(text);
+      const { headers, rows } = parseSimpleCsv(text);
+      setBulkExpenseCsvHeaders(headers);
+      setBulkExpensePreviewRows(rows.slice(0, 10));
+      setBulkExpenseFieldMapping({ title: "", amount: "", date: "", category: "", paymentMethod: "" });
+    };
+    reader.readAsText(file, "utf-8");
+  };
+
+  const handleBulkExpenseImport = () => {
+    if (!bulkExpenseCsvText) { alert("Lütfen önce bir CSV dosyası seçin."); return; }
+    const { headers, rows } = parseSimpleCsv(bulkExpenseCsvText);
+    if (!headers.length || !rows.length) { alert("CSV içeriği okunamadı veya boş."); return; }
+    const { title: titleCol, amount: amountCol, date: dateCol, category: categoryCol, paymentMethod: paymentCol } = bulkExpenseFieldMapping;
+    if (!titleCol || !amountCol || !dateCol) { alert("En az Başlık, Tutar ve Tarih için sütun seçmeniz gerekiyor."); return; }
+
+    const newExpenses = [];
+    rows.forEach((row) => {
+      const rawTitle = row[titleCol] ?? "";
+      const rawAmount = row[amountCol] ?? "";
+      const rawDate = row[dateCol] ?? "";
+      const rawCategory = categoryCol ? row[categoryCol] ?? "" : "";
+      const rawPayment = paymentCol ? row[paymentCol] ?? "" : "";
+
+      const amount = parseFloat(String(rawAmount).replace(/\./g, "").replace(",", "."));
+      if (isNaN(amount)) return;
+
+      const date = normalizeDateToDDMMYYYY(String(rawDate).trim());
+
+      let paymentMethod = String(rawPayment).trim();
+      const pmLower = paymentMethod.toLowerCase();
+      if (pmLower.includes("nakit") || pmLower === "cash") {
+        paymentMethod = "Nakit";
+      } else if (pmLower.includes("kart") || pmLower.includes("credit")) {
+        paymentMethod = "Kart";
+      } else if (pmLower.includes("havale") || pmLower.includes("eft") || pmLower.includes("transfer")) {
+        paymentMethod = "Havale/EFT";
+      } else {
+        paymentMethod = paymentMethod || "Diğer";
+      }
+
+      newExpenses.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
+        title: rawTitle,
+        amount,
+        date,
+        category: rawCategory || "other",
+        type: bulkExpenseDefaultType,
+        paymentMethod,
+        createdAt: new Date().toISOString(),
+      });
+    });
+
+    if (!newExpenses.length) { alert("Geçerli satır bulunamadı."); return; }
+
+    setExpenses((prev) => {
+      const merged = [...prev, ...newExpenses];
+      localStorage.setItem("expenses", JSON.stringify(merged));
+      return merged;
+    });
+
+    setShowBulkExpenseImport(false);
+    setBulkExpenseCsvText("");
+    setBulkExpenseCsvHeaders([]);
+    setBulkExpensePreviewRows([]);
+    alert(`${newExpenses.length} gider başarıyla eklendi.`);
   };
 
   const addExpense = () => {
@@ -2381,6 +2504,15 @@ ${message.body || message.snippet}`,
             </Panel>
 
             <Panel title="Gider Ekle">
+              <div style={{ marginBottom: 12 }}>
+                <button
+                  onClick={() => setShowBulkExpenseImport(true)}
+                  style={styles.smallBtn}
+                  type="button"
+                >
+                  CSV ile Toplu Gider Yükle
+                </button>
+              </div>
               <div style={styles.form}>
                 <InputField label="Başlık" value={expenseForm.title} onChange={(v) => setExpenseForm({ ...expenseForm, title: v })} />
                 <InputField label="Tutar" value={expenseForm.amount} onChange={(v) => setExpenseForm({ ...expenseForm, amount: v })} type="number" />
@@ -2791,6 +2923,101 @@ ${message.body || message.snippet}`,
           </section>
         )}
       </main>
+
+      {showBulkExpenseImport && (
+        <div style={styles.confirmOverlay}>
+          <div style={{ ...styles.confirmBox, width: "min(700px, 96vw)", maxHeight: "90vh", overflowY: "auto" }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>CSV ile Toplu Gider Yükle</h2>
+
+            <div style={{ marginBottom: 12 }}>
+              <label style={styles.field}>
+                <span style={styles.label}>CSV Dosyası Seç</span>
+                <input type="file" accept=".csv" onChange={handleBulkExpenseCsvFileChange} style={{ marginTop: 4 }} />
+              </label>
+            </div>
+
+            {bulkExpenseCsvHeaders.length > 0 && (
+              <>
+                <div style={{ marginBottom: 12 }}>
+                  <label style={styles.field}>
+                    <span style={styles.label}>Bu yüklemedeki tüm kayıtların Tipi</span>
+                    <select value={bulkExpenseDefaultType} onChange={(e) => setBulkExpenseDefaultType(e.target.value)} style={styles.input}>
+                      <option value="one-time">one-time</option>
+                      <option value="recurring">recurring</option>
+                    </select>
+                  </label>
+                </div>
+
+                <div style={{ marginBottom: 12 }}>
+                  <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>Sütun Eşleştirme</div>
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        <th style={styles.th}>CSV Sütunu</th>
+                        <th style={styles.th}>Uygulama Alanı</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {bulkExpenseCsvHeaders.map((col) => (
+                        <tr key={col}>
+                          <td style={styles.td}>{col}</td>
+                          <td style={styles.td}>
+                            <select
+                              value={Object.entries(bulkExpenseFieldMapping).find(([, v]) => v === col)?.[0] || ""}
+                              onChange={(e) => {
+                                const field = e.target.value;
+                                setBulkExpenseFieldMapping((prev) => {
+                                  const updated = { ...prev };
+                                  Object.keys(updated).forEach((k) => { if (updated[k] === col) updated[k] = ""; });
+                                  if (field) updated[field] = col;
+                                  return updated;
+                                });
+                              }}
+                              style={styles.input}
+                            >
+                              <option value="">(Kullanma)</option>
+                              <option value="title">Başlık</option>
+                              <option value="amount">Tutar</option>
+                              <option value="date">Tarih</option>
+                              <option value="category">Kategori</option>
+                              <option value="paymentMethod">Ödeme Şekli</option>
+                            </select>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {bulkExpensePreviewRows.length > 0 && (
+                  <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontWeight: 600, fontSize: 13, marginBottom: 8 }}>Önizleme (ilk 10 satır)</div>
+                    <div style={{ overflowX: "auto" }}>
+                      <table style={styles.table}>
+                        <thead>
+                          <tr>{bulkExpenseCsvHeaders.map((h) => <th key={h} style={styles.th}>{h}</th>)}</tr>
+                        </thead>
+                        <tbody>
+                          {bulkExpensePreviewRows.map((row, idx) => (
+                            <tr key={idx}>
+                              {bulkExpenseCsvHeaders.map((h) => <td key={h} style={styles.td}>{row[h]}</td>)}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            <div style={styles.filters}>
+              <button style={styles.smallBtn} type="button" onClick={() => setShowBulkExpenseImport(false)}>Vazgeç</button>
+              <button style={styles.primaryBtn} type="button" onClick={handleBulkExpenseImport}>İçeri Aktar</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmState.open && (
         <div style={styles.confirmOverlay}>

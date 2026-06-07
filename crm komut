@@ -6,3 +6,4 @@ git add .
 git commit -m "değişiklik açıklaması"
 git push
 
+“App_master.jsx  benim referans dosyam, tüm değişiklikleri bunun üzerinden yap.”
