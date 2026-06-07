@@ -207,9 +207,33 @@ function parseSimpleCsv(text) {
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
   if (lines.length === 0) return { headers: [], rows: [] };
-  const headers = lines[0].split(";").map((h) => h.trim());
+
+  // Ayracı otomatik algıla: ilk satırda ; yoksa , kullan
+  const separator = lines[0].includes(";") ? ";" : ",";
+
+  // Tırnak içindeki ayracı koruyarak böl
+  const splitLine = (line) => {
+    const result = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        inQuotes = !inQuotes;
+      } else if (ch === separator && !inQuotes) {
+        result.push(current.trim().replace(/^"|"$/g, ""));
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim().replace(/^"|"$/g, ""));
+    return result;
+  };
+
+  const headers = splitLine(lines[0]);
   const rows = lines.slice(1).map((line) => {
-    const cols = line.split(";").map((c) => c.trim());
+    const cols = splitLine(line);
     const row = {};
     headers.forEach((h, i) => {
       row[h] = cols[i] ?? "";
