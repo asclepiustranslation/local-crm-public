@@ -1307,6 +1307,34 @@ ${message.body || message.snippet}`,
     }
   };
 
+  const [editingExpense, setEditingExpense] = useState(null);
+
+  const startEditExpense = (expense) => {
+    setEditingExpense({ ...expense });
+  };
+
+  const saveEditExpense = () => {
+    if (!editingExpense) return;
+    if (!editingExpense.title || !editingExpense.amount || !editingExpense.date) return;
+    setExpenses((prev) =>
+      prev.map((e) =>
+        e.id === editingExpense.id
+          ? {
+              ...e,
+              title: editingExpense.title,
+              category: editingExpense.category,
+              amount: Number(editingExpense.amount),
+              date: editingExpense.date,
+              type: editingExpense.type,
+              recognition: editingExpense.recognition,
+              note: editingExpense.note,
+            }
+          : e
+      )
+    );
+    setEditingExpense(null);
+  };
+
   const addActivity = (e) => {
     e.preventDefault();
     if (!activeDetailId) return;
@@ -2418,6 +2446,65 @@ ${message.body || message.snippet}`,
             </Panel>
 
             <div style={{ gridColumn: "1 / -1" }}>
+              <Panel title="Girilen Giderler">
+                {expenses.length === 0 ? (
+                  <p style={styles.mutedDark}>Henüz gider eklenmemiş.</p>
+                ) : (
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={styles.table}>
+                      <thead>
+                        <tr>
+                          <th style={styles.th}>Tarih</th>
+                          <th style={styles.th}>Başlık</th>
+                          <th style={styles.th}>Kategori</th>
+                          <th style={styles.th}>Tip</th>
+                          <th style={styles.th}>Tanıma</th>
+                          <th style={styles.th}>Tutar</th>
+                          <th style={styles.th}>Not</th>
+                          <th style={styles.th}>İşlem</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {expenses
+                          .slice()
+                          .sort((a, b) => (b.date || "").localeCompare(a.date || ""))
+                          .map((e) => (
+                            <tr key={e.id}>
+                              <td style={styles.td}>{e.date || "-"}</td>
+                              <td style={styles.td}>{e.title}</td>
+                              <td style={styles.td}>{e.category || "-"}</td>
+                              <td style={styles.td}>{e.type || "-"}</td>
+                              <td style={styles.td}>{e.recognition || "-"}</td>
+                              <td style={{ ...styles.td, fontWeight: 600 }}>{money(e.amount)}</td>
+                              <td style={{ ...styles.td, color: "#6B7280", fontSize: 12 }}>{e.note || "-"}</td>
+                              <td style={styles.td}>
+                                <div style={{ display: "flex", gap: 6 }}>
+                                  <button
+                                    onClick={() => startEditExpense(e)}
+                                    style={styles.smallBtn}
+                                    type="button"
+                                  >
+                                    Düzenle
+                                  </button>
+                                  <button
+                                    onClick={() => deleteExpense(e.id)}
+                                    style={{ ...styles.smallBtn, background: "#fee2e2", color: "#991b1b", borderColor: "#fca5a5" }}
+                                    type="button"
+                                  >
+                                    Sil
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </Panel>
+            </div>
+
+            <div style={{ gridColumn: "1 / -1" }}>
               <Panel title="Dönemsel Kâr / Zarar">
                 <div style={{ overflowX: "auto" }}>
                   <table style={styles.table}>
@@ -2791,6 +2878,84 @@ ${message.body || message.snippet}`,
           </section>
         )}
       </main>
+
+      {editingExpense && (
+        <div style={styles.confirmOverlay}>
+          <div style={{ ...styles.confirmBox, width: "min(480px, 94vw)" }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Gideri Düzenle</h2>
+            <div style={{ display: "grid", gap: 10 }}>
+              <label style={styles.field}>
+                <span style={styles.label}>Başlık</span>
+                <input
+                  style={styles.input}
+                  value={editingExpense.title}
+                  onChange={(e) => setEditingExpense((p) => ({ ...p, title: e.target.value }))}
+                />
+              </label>
+              <label style={styles.field}>
+                <span style={styles.label}>Tutar</span>
+                <input
+                  type="number"
+                  style={styles.input}
+                  value={editingExpense.amount}
+                  onChange={(e) => setEditingExpense((p) => ({ ...p, amount: e.target.value }))}
+                />
+              </label>
+              <label style={styles.field}>
+                <span style={styles.label}>Tarih</span>
+                <input
+                  type="date"
+                  style={styles.input}
+                  value={editingExpense.date}
+                  onChange={(e) => setEditingExpense((p) => ({ ...p, date: e.target.value }))}
+                />
+              </label>
+              <label style={styles.field}>
+                <span style={styles.label}>Kategori</span>
+                <input
+                  style={styles.input}
+                  value={editingExpense.category}
+                  onChange={(e) => setEditingExpense((p) => ({ ...p, category: e.target.value }))}
+                />
+              </label>
+              <label style={styles.field}>
+                <span style={styles.label}>Tip</span>
+                <select
+                  style={styles.input}
+                  value={editingExpense.type}
+                  onChange={(e) => setEditingExpense((p) => ({ ...p, type: e.target.value }))}
+                >
+                  <option value="one-time">One-time</option>
+                  <option value="recurring">Recurring</option>
+                </select>
+              </label>
+              <label style={styles.field}>
+                <span style={styles.label}>Tanıma</span>
+                <select
+                  style={styles.input}
+                  value={editingExpense.recognition}
+                  onChange={(e) => setEditingExpense((p) => ({ ...p, recognition: e.target.value }))}
+                >
+                  <option value="cash">Cash</option>
+                  <option value="spread">Spread</option>
+                </select>
+              </label>
+              <label style={styles.field}>
+                <span style={styles.label}>Not</span>
+                <input
+                  style={styles.input}
+                  value={editingExpense.note || ""}
+                  onChange={(e) => setEditingExpense((p) => ({ ...p, note: e.target.value }))}
+                />
+              </label>
+            </div>
+            <div style={{ ...styles.filters, marginTop: 16 }}>
+              <button style={styles.primaryBtn} type="button" onClick={saveEditExpense}>Kaydet</button>
+              <button style={styles.smallBtn} type="button" onClick={() => setEditingExpense(null)}>İptal</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {confirmState.open && (
         <div style={styles.confirmOverlay}>
