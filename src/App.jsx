@@ -1009,6 +1009,15 @@ ${message.body || message.snippet}`,
     return Object.entries(map).map(([name, value]) => ({ name, value }));
   }, [expenses]);
 
+  // Sabit kategoriler + expenses'ten türetilen özel kategorilerin birleşimi
+  const BASE_CATEGORIES = ["software", "salary", "rent", "tax", "other"];
+  const allExpenseCategories = useMemo(() => {
+    const fromExpenses = expenses
+      .map((e) => e.category)
+      .filter((c) => c && !BASE_CATEGORIES.includes(c));
+    return [...BASE_CATEGORIES, ...Array.from(new Set(fromExpenses))];
+  }, [expenses]);
+
   const companyMap = useMemo(() => new Map(companies.map((c) => [String(c.companyName).toLowerCase(), c])), [companies]);
   const contactMap = useMemo(() => new Map(contacts.map((c) => [String(c.fullName).toLowerCase(), c])), [contacts]);
 
@@ -2323,11 +2332,9 @@ ${message.body || message.snippet}`,
                   </select>
                   <select value={expenseCategoryFilter} onChange={(e) => setExpenseCategoryFilter(e.target.value)} style={styles.input}>
                     <option value="">Tüm kategoriler</option>
-                    <option value="software">Software</option>
-                    <option value="salary">Salary</option>
-                    <option value="rent">Rent</option>
-                    <option value="tax">Tax</option>
-                    <option value="other">Other</option>
+                    {allExpenseCategories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                   </select>
                   <select value={expenseTypeFilter} onChange={(e) => setExpenseTypeFilter(e.target.value)} style={styles.input}>
                     <option value="">Tüm türler</option>
@@ -2420,11 +2427,9 @@ ${message.body || message.snippet}`,
                     onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value, customCategory: "" })}
                     style={styles.input}
                   >
-                    <option value="software">Software</option>
-                    <option value="salary">Salary</option>
-                    <option value="rent">Rent</option>
-                    <option value="tax">Tax</option>
-                    <option value="other">Other</option>
+                    {allExpenseCategories.map((cat) => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
                     <option value="__custom__">+ Yeni kategori ekle…</option>
                   </select>
                   {expenseForm.category === "__custom__" && (
