@@ -22,31 +22,31 @@ const LS_PROJECTS = "asklepius-projects";
 const LS_ACTIVITIES = "asklepius-activities";
 const LS_EXPENSES = "asklepius-expenses";
 const LS_GOOGLE_AUTH = "googleAuth";
-const LS_GMAIL_AUTH = "gmailAuth";
+const LS_GMAIL_AUTH = "gemailAuth";
 
 const dealStatuses = [
   "closed won",
-  "reservasyon",
-  "reservasyonlu",
-  "işlemde",
-  "ödeme bekleniyor",
-  "kayıp/iptal",
+  "reserved",
+  "reserved",
+  "in progress",
+  "payment pending",
+  "lost-cancelled",
 ];
 
-const activityTypes = ["note", "email", "call", "meeting", "task", "status-change"];
+const activityTypes = ["note", "eemail", "call", "meeting", "task", "status-change"];
 const COLORS = ["#57C4E5", "#E0A23F", "#8A6322", "#2B2B2B", "#C98B2E", "#B8DDEB"];
 
 const seedCompanies = [
   {
     id: crypto.randomUUID(),
-    companyName: "ABC Çeviri",
-    billingCity: "İstanbul",
+    companyName: "ABC Translation",
+    billingCity: "Istanbul",
     phone: "+90 212 000 0000",
     mobile: "+90 533 000 0000",
-    email: "info@abc.com",
-    nextStep: "Teklif gönder",
+    eemail: "info@abc.com",
+    nextStep: "Send proposal",
     lastActivity: "2026-05-20",
-    owner: "Ayşe",
+    owner: "Ayse",
     contactIds: [],
     createdAt: new Date().toISOString(),
   },
@@ -55,17 +55,17 @@ const seedCompanies = [
 const seedContacts = [
   {
     id: crypto.randomUUID(),
-    fullName: "Mehmet Yılmaz",
-    company: "ABC Çeviri",
+    fullName: "Mehmet Yilmaz",
+    company: "ABC Translation",
     companyIds: [],
-    jobTitle: "Proje Yöneticisi",
+    jobTitle: "Project Manager",
     mobile: "+90 532 111 2233",
     business: "+90 212 000 0001",
-    email1: "mehmet@abc.com",
-    cityBusiness: "İstanbul",
-    nextStep: "Geri dönüş bekleniyor",
+    eemail1: "mehmet@abc.com",
+    cityBusiness: "Istanbul",
+    nextStep: "Waiting for reply",
     lastActivity: "2026-05-21",
-    owner: "Ayşe",
+    owner: "Ayse",
     createdAt: new Date().toISOString(),
   },
 ];
@@ -73,11 +73,11 @@ const seedContacts = [
 const seedDeals = [
   {
     id: crypto.randomUUID(),
-    customer: "ABC Çeviri",
-    contactPerson: "Mehmet Yılmaz",
-    name: "Web sitesi lokalizasyonu",
+    customer: "ABC Translation",
+    contactPerson: "Mehmet Yilmaz",
+    name: "Website localization",
     dateReceived: "2026-05-10",
-    status: "işlemde",
+    status: "in progress",
     estRevenue: 4500,
     estCloseDate: "2026-05-30",
     note: "",
@@ -89,14 +89,14 @@ const seedDeals = [
 const seedProjects = [
   {
     id: crypto.randomUUID(),
-    company: "ABC Çeviri",
-    contactPerson: "Mehmet Yılmaz",
+    company: "ABC Translation",
+    contactPerson: "Mehmet Yilmaz",
     name: "Website TR-EN Project",
-    status: "işlemde",
+    status: "in progress",
     startDate: "2026-05-12",
     dueDate: "2026-05-28",
     estRevenue: 4500,
-    owner: "Ayşe",
+    owner: "Ayse",
     note: "",
     description: "",
     updates: [],
@@ -111,8 +111,8 @@ const seedActivities = [
     entityType: "deal",
     entityId: seedDeals[0].id,
     type: "note",
-    subject: "İlk görüşme notu",
-    body: "Müşteri teklif istedi.",
+    subject: "Initial meeting note",
+    body: "Client requested a quote.",
     direction: "internal",
     status: "done",
     relatedCompanyId: null,
@@ -120,7 +120,7 @@ const seedActivities = [
     relatedDealId: seedDeals[0].id,
     relatedProjectId: null,
     createdAt: new Date().toISOString(),
-    createdBy: "Ayşe",
+    createdBy: "Ayse",
     source: "manual",
   },
 ];
@@ -139,9 +139,9 @@ function saveLS(key, value) {
 }
 
 function money(n) {
-  return new Intl.NumberFormat("tr-TR", {
+  return new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency: "TRY",
+    currency: "USD",
     maximumFractionDigits: 0,
   }).format(Number(n || 0));
 }
@@ -182,7 +182,7 @@ function normalizeHeader(h) {
     .trim()
     .toLowerCase()
     .replace(/[()\.]/g, "")
-    .replace(/[^a-z0-9ğüşöçıİĞÜŞÖÇ]+/gi, "-")
+    .replace(/[^a-z0-9gusociIGUSOC]+/gi, "-")
     .replace(/-{2,}/g, "-")
     .replace(/^-+|-+$/g, "");
 }
@@ -333,7 +333,7 @@ export default function App() {
   const [expenseCategoryFilter, setExpenseCategoryFilter] = useState("");
   const [expenseTypeFilter, setExpenseTypeFilter] = useState("");
   const [expenseRecognitionFilter, setExpenseRecognitionFilter] = useState("");
-  // Muhasebe raporu ek filtreleri
+  // Extra accounting report filters
   const [accYearFilter, setAccYearFilter] = useState("");
   const [accMonthFilter, setAccMonthFilter] = useState("");
   const [accCompanyFilter, setAccCompanyFilter] = useState("");
@@ -351,7 +351,7 @@ export default function App() {
     body: "",
     direction: "internal",
     status: "done",
-    createdBy: "Ayşe",
+    createdBy: "Ayse",
   });
 
   const [expenseForm, setExpenseForm] = useState({
@@ -384,7 +384,7 @@ export default function App() {
     companyName: "",
     billingCity: "",
     phone: "",
-    email: "",
+    eemail: "",
     contactIds: [],
   });
 
@@ -392,7 +392,7 @@ export default function App() {
     fullName: "",
     jobTitle: "",
     mobile: "",
-    email1: "",
+    eemail1: "",
     companyIds: [],
   });
 
@@ -401,7 +401,7 @@ export default function App() {
     customerId: "",
     contactPersonId: "",
     dateReceived: "",
-    status: "reservasyonlu",
+    status: "reserved",
     estRevenue: "",
     estCloseDate: "",
     note: "",
@@ -412,7 +412,7 @@ export default function App() {
     name: "",
     companyId: "",
     contactPersonId: "",
-    status: "işlemde",
+    status: "in progress",
     startDate: "",
     dueDate: "",
     estRevenue: "",
@@ -436,20 +436,20 @@ export default function App() {
   const [googleContacts, setGoogleContacts] = useState([]);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [googleError, setGoogleError] = useState("");
-  const [gmailAuth, setGmailAuth] = useState(() => {
+  const [gemailAuth, setGmailAuth] = useState(() => {
     try {
       return JSON.parse(localStorage.getItem(LS_GMAIL_AUTH) || "null");
     } catch {
       return null;
     }
   });
-  const [gmailLoading, setGmailLoading] = useState(false);
-  const [gmailError, setGmailError] = useState("");
-  const [gmailMessages, setGmailMessages] = useState([]);
-  const [gmailQuery, setGmailQuery] = useState("newer_than:30d");
-  const [gmailLabelFilter, setGmailLabelFilter] = useState("INBOX");
+  const [gemailLoading, setGmailLoading] = useState(false);
+  const [gemailError, setGmailError] = useState("");
+  const [gemailMessages, setGmailMessages] = useState([]);
+  const [gemailQuery, setGmailQuery] = useState("newer_than:30d");
+  const [gemailLabelFilter, setGmailLabelFilter] = useState("INBOX");
   const [selectedGmailMessage, setSelectedGmailMessage] = useState(null);
-  const [mailImportTarget, setMailImportTarget] = useState({ entityType: "contact", entityId: "" });
+  const [emailImportTarget, setMailImportTarget] = useState({ entityType: "contact", entityId: "" });
 
   useEffect(() => saveLS(LS_COMPANIES, companies), [companies]);
   useEffect(() => saveLS(LS_CONTACTS, contacts), [contacts]);
@@ -467,33 +467,33 @@ export default function App() {
   }, [googleAuth]);
 
   useEffect(() => {
-    if (gmailAuth) {
-      localStorage.setItem(LS_GMAIL_AUTH, JSON.stringify(gmailAuth));
+    if (gemailAuth) {
+      localStorage.setItem(LS_GMAIL_AUTH, JSON.stringify(gemailAuth));
     } else {
       localStorage.removeItem(LS_GMAIL_AUTH);
     }
-  }, [gmailAuth]);
+  }, [gemailAuth]);
 
   const fetchGoogleContacts = async (accessToken) => {
     try {
       setGoogleLoading(true);
       setGoogleError("");
       const res = await fetch(
-        "https://people.googleapis.com/v1/people/me/connections?pageSize=1000&personFields=names,emailAddresses",
+        "https://people.googleapis.com/v1/people/me/connections?pageSize=1000&personFields=names,eemailAddresses",
         {
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
-      if (!res.ok) throw new Error("Google Contacts okunamadı");
+      if (!res.ok) throw new Error("Failed to read Google Contacts");
       const data = await res.json();
       const mapped = (data.connections || []).map((person) => ({
         resourceName: person.resourceName,
         name: person.names?.[0]?.displayName || "",
-        email: person.emailAddresses?.[0]?.value || "",
+        eemail: person.eemailAddresses?.[0]?.value || "",
       }));
       setGoogleContacts(mapped);
     } catch {
-      setGoogleError("Google kişi eşleştirmesi alınamadı.");
+      setGoogleError("Failed to fetch Google contact matches.");
     } finally {
       setGoogleLoading(false);
     }
@@ -504,7 +504,7 @@ export default function App() {
       setGoogleLoading(true);
       setGoogleError("");
       const token = tokenResponse?.access_token;
-      if (!token) throw new Error("Access token alınamadı");
+      if (!token) throw new Error("Access token could not be retrieved");
       const data = {
         accessToken: token,
         connectedAt: new Date().toISOString(),
@@ -514,7 +514,7 @@ export default function App() {
       setGoogleAuth(data);
       await fetchGoogleContacts(token);
     } catch {
-      setGoogleError("Google hesabı bağlanamadı.");
+      setGoogleError("Google account could not be connected.");
     } finally {
       setGoogleLoading(false);
     }
@@ -524,7 +524,7 @@ export default function App() {
     scope: "https://www.googleapis.com/auth/contacts.readonly",
     flow: "implicit",
     onSuccess: handleGoogleSuccess,
-    onError: () => setGoogleError("Google ile giriş başarısız oldu."),
+    onError: () => setGoogleError("Google connection failed."),
   });
 
   const handleGoogleDisconnect = () => {
@@ -534,13 +534,13 @@ export default function App() {
     setGoogleError("");
   };
 
-  const fetchGmailMessages = async (accessToken = gmailAuth?.accessToken, query = gmailQuery, label = gmailLabelFilter) => {
+  const fetchGmailMessages = async (accessToken = gemailAuth?.accessToken, query = gemailQuery, label = gemailLabelFilter) => {
     try {
       setGmailLoading(true);
       setGmailError("");
-      if (!accessToken) throw new Error("Gmail access token bulunamadı");
+      if (!accessToken) throw new Error("Gmail access token not found");
 
-      // Tüm sayfaları nextPageToken ile çek
+      // Fetch all pages with nextPageToken
       let messages = [];
       let pageToken = null;
       do {
@@ -549,10 +549,10 @@ export default function App() {
         if (query) params.set("q", query);
         if (label) params.set("labelIds", label);
         if (pageToken) params.set("pageToken", pageToken);
-        const listRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages?${params.toString()}`, {
+        const listRes = await fetch(`https://gemail.googleapis.com/gemail/v1/users/me/messages?${params.toString()}`, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
-        if (!listRes.ok) throw new Error("Gmail mesaj listesi alınamadı");
+        if (!listRes.ok) throw new Error("Failed to fetch Gmail message list");
         const listData = await listRes.json();
         messages = messages.concat(listData.messages || []);
         pageToken = listData.nextPageToken || null;
@@ -560,7 +560,7 @@ export default function App() {
 
       const details = await Promise.all(
         messages.map(async (m) => {
-          const res = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=full`, {
+          const res = await fetch(`https://gemail.googleapis.com/gemail/v1/users/me/messages/${m.id}?format=full`, {
             headers: { Authorization: `Bearer ${accessToken}` },
           });
           if (!res.ok) return null;
@@ -570,14 +570,14 @@ export default function App() {
           const body = extractMessageBody(data.payload || {});
           const from = headers.From || "";
           const to = headers.To || "";
-          const subject = headers.Subject || "(Konu yok)";
+          const subject = headers.Subject || "(No subject)";
           const date = headers.Date || "";
-          const emailMatch = (from.match(/<([^>]+)>/) || [])[1] || from;
-          const cleanEmail = String(emailMatch || "").trim().toLowerCase();
-          const suggestedContact = contacts.find((c) => String(c.email1 || "").trim().toLowerCase() === cleanEmail) || null;
+          const eemailMatch = (from.match(/<([^>]+)>/) || [])[1] || from;
+          const cleanEmail = String(eemailMatch || "").trim().toLowerCase();
+          const suggestedContact = contacts.find((c) => String(c.eemail1 || "").trim().toLowerCase() === cleanEmail) || null;
           const suggestedCompany = suggestedContact
             ? companies.find((co) => co.companyName === suggestedContact.company) || null
-            : companies.find((co) => String(co.email || "").trim().toLowerCase() === cleanEmail) || null;
+            : companies.find((co) => String(co.eemail || "").trim().toLowerCase() === cleanEmail) || null;
           const suggestedDeal = suggestedContact
             ? deals.find((d) => d.contactPerson === suggestedContact.fullName) || null
             : suggestedCompany
@@ -592,7 +592,7 @@ export default function App() {
             to,
             subject,
             date,
-            email: cleanEmail,
+            eemail: cleanEmail,
             labelIds: data.labelIds || [],
             suggestedContactId: suggestedContact?.id || "",
             suggestedCompanyId: suggestedCompany?.id || "",
@@ -611,7 +611,7 @@ export default function App() {
         });
       }
     } catch (err) {
-      setGmailError("Gmail mesajları alınamadı.");
+      setGmailError("Failed to fetch Gmail messages.");
     } finally {
       setGmailLoading(false);
     }
@@ -620,7 +620,7 @@ export default function App() {
   const handleGmailSuccess = async (tokenResponse) => {
     try {
       const token = tokenResponse?.access_token;
-      if (!token) throw new Error("Gmail access token alınamadı");
+      if (!token) throw new Error("Gmail access token could not be retrieved");
       const data = {
         accessToken: token,
         connectedAt: new Date().toISOString(),
@@ -628,17 +628,17 @@ export default function App() {
         tokenType: tokenResponse?.token_type || "Bearer",
       };
       setGmailAuth(data);
-      await fetchGmailMessages(token, gmailQuery, gmailLabelFilter);
+      await fetchGmailMessages(token, gemailQuery, gemailLabelFilter);
     } catch {
-      setGmailError("Gmail hesabı bağlanamadı.");
+      setGmailError("Gmail account could not be connected.");
     }
   };
 
   const connectGmail = useGoogleLogin({
-    scope: "https://www.googleapis.com/auth/gmail.readonly",
+    scope: "https://www.googleapis.com/auth/gemail.readonly",
     flow: "implicit",
     onSuccess: handleGmailSuccess,
-    onError: () => setGmailError("Gmail bağlantısı başarısız oldu."),
+    onError: () => setGmailError("Gmail connection failed."),
   });
 
   const handleGmailDisconnect = () => {
@@ -655,13 +655,13 @@ export default function App() {
       id: crypto.randomUUID(),
       entityType: target.entityType,
       entityId: target.entityId,
-      type: "email",
+      type: "eemail",
       subject: message.subject,
-      body: `Kimden: ${message.from}
-Kime: ${message.to}
-Tarih: ${message.date}
+      body: `From: ${message.from}
+To: ${message.to}
+Date: ${message.date}
 
-Mesaj:
+Message:
 ${message.body || message.snippet}`,
       direction: message.labelIds?.includes("SENT") ? "outgoing" : "incoming",
       status: "done",
@@ -671,14 +671,14 @@ ${message.body || message.snippet}`,
       relatedProjectId: target.entityType === "project" ? target.entityId : null,
       createdAt: message.date ? new Date(message.date).toISOString() : new Date().toISOString(),
       createdBy: "Gmail Import",
-      source: "gmail-manual",
+      source: "gemail-manual",
     };
     setActivities((prev) => [rec, ...prev]);
-    setImportMessage(`Mail CRM'e aktarıldı: ${message.subject}`);
+    setImportMessage(`Email imported into CRM: ${message.subject}`);
   };
 
   const deleteActivity = (id) => {
-    if (window.confirm("Bu aktiviteyi silmek istediğinize emin misiniz?")) {
+    if (window.confirm("Are you sure you want to delete this activity?")) {
       setActivities((prev) => prev.filter((a) => a.id !== id));
     }
   };
@@ -688,15 +688,15 @@ ${message.body || message.snippet}`,
       contacts.map((contact) => {
         const match = googleContacts.find(
           (g) =>
-            g.email &&
-            contact.email1 &&
-            g.email.trim().toLowerCase() === contact.email1.trim().toLowerCase()
+            g.eemail &&
+            contact.eemail1 &&
+            g.eemail.trim().toLowerCase() === contact.eemail1.trim().toLowerCase()
         );
         return {
           ...contact,
           googleMatched: Boolean(match),
           googleName: match?.name || "",
-          googleEmail: match?.email || "",
+          googleEmail: match?.eemail || "",
         };
       }),
     [contacts, googleContacts]
@@ -783,19 +783,19 @@ ${message.body || message.snippet}`,
 
   const dealStats = useMemo(() => {
     const won     = deals.filter((d) => d.status === "closed won");
-    const pending = deals.filter((d) => ["işlemde", "ödeme bekleniyor"].includes(d.status)).length;
+    const pending = deals.filter((d) => ["in progress", "payment pending"].includes(d.status)).length;
     const totalRevenue = deals
-      .filter((d) => ["closed won", "reservasyon", "reservasyonlu", "reserved"].includes(d.status))
+      .filter((d) => ["closed won", "reserved", "reserved", "reserved"].includes(d.status))
       .reduce((s, d) => s + Number(d.estRevenue || 0), 0);
     return { count: deals.length, wonCount: won.length, pending, totalRevenue };
   }, [deals]);
 
   const reservedDeals = useMemo(
     () => deals
-      .filter((d) => ["reservasyonlu", "reserved", "reservasyon"].includes(d.status))
+      .filter((d) => ["reserved"].includes(d.status))
       .slice()
       .sort((a, b) => {
-        // En yakın kapanış tarihi üstte
+        // En yakin kapanis tarihi ustte
         const dateA = String(a.estCloseDate || a.dateReceived || a.createdAt || "");
         const dateB = String(b.estCloseDate || b.dateReceived || b.createdAt || "");
         return dateA.localeCompare(dateB);
@@ -830,7 +830,7 @@ ${message.body || message.snippet}`,
   const reportMonthlyRevenue = useMemo(() => {
     const map = {};
     reportDeals
-      .filter((d) => ["closed won", "reservasyon", "reservasyonlu", "reserved"].includes(d.status))
+      .filter((d) => ["closed won", "reserved", "reserved", "reserved"].includes(d.status))
       .forEach((d) => {
         const month = String(d.dateReceived || d.estCloseDate || d.createdAt || "").slice(0, 7);
         if (!month) return;
@@ -844,7 +844,7 @@ ${message.body || message.snippet}`,
   const reportDealStatusPie = useMemo(() => {
     const map = {};
     reportDeals.forEach((d) => {
-      const key = d.status || "belirsiz";
+      const key = d.status || "unknown";
       map[key] = (map[key] || 0) + 1;
     });
     return Object.entries(map).map(([name, value]) => ({ name, value }));
@@ -852,7 +852,7 @@ ${message.body || message.snippet}`,
 
   const accountingRows = useMemo(() => {
     const dealIncomeRows = deals
-      .filter((d) => d.status === "closed won" || d.status === "reserved" || d.status === "reservasyon" || d.status === "reservasyonlu")
+      .filter((d) => d.status === "closed won" || d.status === "reserved")
       .map((d) => ({
         id: `deal-${d.id}`,
         date: d.dateReceived || d.estCloseDate || d.createdAt,
@@ -862,7 +862,7 @@ ${message.body || message.snippet}`,
         title: d.name,
         customer: d.customer,
         kind:
-          d.status === "reserved" || d.status === "reservasyon" || d.status === "reservasyonlu"
+          d.status === "reserved"
             ? "pendingIncome"
             : "realizedIncome",
         spreadMonths: 1,
@@ -907,7 +907,7 @@ ${message.body || message.snippet}`,
       .filter((r) => (accCompanyFilter ? r.customer === accCompanyFilter : true))
       .filter((r) => {
         if (!accContactFilter) return true;
-        // Kişi filtresi: deal veya proje'deki contactPerson alanına bak
+        // Contact filtresi: deal veya proje'deki contactPerson alanina bak
         const deal = deals.find((d) => `deal-${d.id}` === r.id);
         if (deal) return deal.contactPerson === accContactFilter;
         return true;
@@ -990,8 +990,8 @@ ${message.body || message.snippet}`,
     return {
       companies: companies.length,
       contacts: contacts.length,
-      openDeals: deals.filter((d) => ["işlemde", "ödeme bekleniyor"].includes(d.status)).length,
-      reservedDeals: deals.filter((d) => ["reservasyonlu", "reserved", "reservasyon"].includes(d.status)).length,
+      openDeals: deals.filter((d) => ["in progress", "payment pending"].includes(d.status)).length,
+      reservedDeals: deals.filter((d) => ["reserved"].includes(d.status)).length,
       realizedIncome,
       pendingIncome,
       totalIncome: realizedIncome + pendingIncome,
@@ -1009,7 +1009,7 @@ ${message.body || message.snippet}`,
     return Object.entries(map).map(([name, value]) => ({ name, value }));
   }, [expenses]);
 
-  // Sabit kategoriler + expenses'ten türetilen özel kategorilerin birleşimi
+  // Sabit kategoriler + expenses'ten turetilen ozel kategorilerin birlesimi
   const BASE_CATEGORIES = ["software", "salary", "rent", "tax", "other"];
   const allExpenseCategories = useMemo(() => {
     const fromExpenses = expenses
@@ -1023,9 +1023,9 @@ ${message.body || message.snippet}`,
 
   const norm = (v) => String(v || "").trim().toLowerCase();
   const findDuplicateCompany = (name) => companies.find((c) => norm(c.companyName) === norm(name));
-  const findDuplicateContact = (name, email) =>
+  const findDuplicateContact = (name, eemail) =>
     contacts.find(
-      (c) => norm(c.fullName) === norm(name) || (email && norm(c.email1) && norm(c.email1) === norm(email))
+      (c) => norm(c.fullName) === norm(name) || (eemail && norm(c.eemail1) && norm(c.eemail1) === norm(eemail))
     );
 
   const getCompanyById = (id) => companies.find((c) => c.id === id);
@@ -1044,16 +1044,16 @@ ${message.body || message.snippet}`,
     });
 
   const resetCompanyForm = () =>
-    setCompanyForm({ companyName: "", billingCity: "", phone: "", email: "", contactIds: [] });
+    setCompanyForm({ companyName: "", billingCity: "", phone: "", eemail: "", contactIds: [] });
   const resetContactForm = () =>
-    setContactForm({ fullName: "", jobTitle: "", mobile: "", email1: "", companyIds: [] });
+    setContactForm({ fullName: "", jobTitle: "", mobile: "", eemail1: "", companyIds: [] });
   const resetDealForm = () =>
     setDealForm({
       name: "",
       customerId: "",
       contactPersonId: "",
       dateReceived: "",
-      status: "reservasyonlu",
+      status: "reserved",
       estRevenue: "",
       estCloseDate: "",
       note: "",
@@ -1063,7 +1063,7 @@ ${message.body || message.snippet}`,
       name: "",
       companyId: "",
       contactPersonId: "",
-      status: "işlemde",
+      status: "in progress",
       startDate: "",
       dueDate: "",
       estRevenue: "",
@@ -1074,9 +1074,9 @@ ${message.body || message.snippet}`,
   const addContact = async () => {
     if (!contactForm.fullName) return;
 
-    const duplicate = findDuplicateContact(contactForm.fullName, contactForm.email1);
+    const duplicate = findDuplicateContact(contactForm.fullName, contactForm.eemail1);
     if (duplicate) {
-      const ok = await askConfirm(`${duplicate.fullName} zaten sistemde mevcut. Yine de yeni kayıt oluşturmak istiyor musunuz?`);
+      const ok = await askConfirm(`${duplicate.fullName} already exists in the system. Do you still want to create a new record?`);
       if (!ok) return;
     }
 
@@ -1091,7 +1091,7 @@ ${message.body || message.snippet}`,
 
     if (existingRelatedCompanies.length > 0 && selectedCompanyNames.length > 0) {
       const ok = await askConfirm(
-        `${contactForm.fullName} daha önce ${existingRelatedCompanies.join(", ")} ile ilişkilendirilmiştir. ${selectedCompanyNames.join(", ")} şirket(ler)ine de eklemek istediğinize emin misiniz?`
+        `${contactForm.fullName} has already been linked to ${existingRelatedCompanies.join(", ")}. ${selectedCompanyNames.join(", ")} Are you sure you want to link them to these companies as well?`
       );
       if (!ok) return;
     }
@@ -1105,11 +1105,11 @@ ${message.body || message.snippet}`,
       jobTitle: contactForm.jobTitle,
       mobile: contactForm.mobile,
       business: "",
-      email1: contactForm.email1,
+      eemail1: contactForm.eemail1,
       cityBusiness: "",
       nextStep: "",
       lastActivity: "",
-      owner: "Ayşe",
+      owner: "Ayse",
       companyIds: contactForm.companyIds,
       createdAt: new Date().toISOString(),
     };
@@ -1132,7 +1132,7 @@ ${message.body || message.snippet}`,
 
     const duplicate = findDuplicateCompany(companyForm.companyName);
     if (duplicate) {
-      const ok = await askConfirm(`${duplicate.companyName} zaten sistemde mevcut. Yine de yeni kayıt oluşturmak istiyor musunuz?`);
+      const ok = await askConfirm(`${duplicate.companyName} already exists in the system. Do you still want to create a new record?`);
       if (!ok) return;
     }
 
@@ -1144,7 +1144,7 @@ ${message.body || message.snippet}`,
     if (conflictedContacts.length > 0) {
       const names = conflictedContacts.map((c) => c.fullName).join(", ");
       const ok = await askConfirm(
-        `${companyForm.companyName} şirketine eklemek istediğiniz bazı kişiler daha önce başka şirket(ler)e bağlı: ${names}. Devam etmek ister misiniz?`
+        `${companyForm.companyName} companyine eklemek istediginiz bazi contactler has already been linked to baska company(ler)e linked: ${names}. Do you want to continue?`
       );
       if (!ok) return;
     }
@@ -1155,10 +1155,10 @@ ${message.body || message.snippet}`,
       billingCity: companyForm.billingCity,
       phone: companyForm.phone,
       mobile: "",
-      email: companyForm.email,
+      eemail: companyForm.eemail,
       nextStep: "",
       lastActivity: "",
-      owner: "Ayşe",
+      owner: "Ayse",
       contactIds: companyForm.contactIds,
       createdAt: new Date().toISOString(),
     };
@@ -1213,21 +1213,21 @@ ${message.body || message.snippet}`,
 
   const addProject = () => {
     if (!projectForm.name?.trim()) {
-      setImportMessage("Proje kaydı için proje adı zorunlu.");
+      setImportMessage("Project name is required.");
       return;
     }
     if (!projectForm.companyId && !projectForm.contactPersonId) {
-      setImportMessage("Proje kaydı için şirket veya kişi seçimi zorunlu.");
+      setImportMessage("Please select a company or contact for the project.");
       return;
     }
     const company = projectForm.companyId ? getCompanyById(projectForm.companyId) : null;
     const contact = projectForm.contactPersonId ? getContactById(projectForm.contactPersonId) : null;
     if (projectForm.companyId && !company?.companyName) {
-      setImportMessage("Seçilen şirket bulunamadı. Lütfen şirketi yeniden seçin.");
+      setImportMessage("Selected company was not found. Please select it again.");
       return;
     }
     if (projectForm.contactPersonId && !contact?.fullName) {
-      setImportMessage("Seçilen kişi bulunamadı. Lütfen kişiyi yeniden seçin.");
+      setImportMessage("Selected contact was not found. Please select it again.");
       return;
     }
     const newProject = {
@@ -1247,7 +1247,7 @@ ${message.body || message.snippet}`,
       createdAt: new Date().toISOString(),
     };
     setProjects((prev) => [...prev, newProject]);
-    setImportMessage(`Proje kaydedildi: ${newProject.name}`);
+    setImportMessage(`Project saved: ${newProject.name}`);
     resetProjectForm();
     setOpenForms((p) => ({ ...p, project: false }));
   };
@@ -1311,7 +1311,7 @@ ${message.body || message.snippet}`,
   };
 
   const deleteExpense = (id) => {
-    if (window.confirm("Bu gideri silmek istediğinize emin misiniz?")) {
+    if (window.confirm("Bu gideri silmek istediginize emin misiniz?")) {
       setExpenses((prev) => prev.filter((e) => e.id !== id));
     }
   };
@@ -1361,11 +1361,11 @@ ${message.body || message.snippet}`,
       relatedDealId: activeDetailType === "deal" ? activeDetailId : null,
       relatedProjectId: activeDetailType === "project" ? activeDetailId : null,
       createdAt: new Date().toISOString(),
-      createdBy: activityForm.createdBy || "Ayşe",
+      createdBy: activityForm.createdBy || "Ayse",
       source: "manual",
     };
     setActivities((prev) => [rec, ...prev]);
-    setActivityForm({ type: "note", subject: "", body: "", direction: "internal", status: "done", createdBy: "Ayşe" });
+    setActivityForm({ type: "note", subject: "", body: "", direction: "internal", status: "done", createdBy: "Ayse" });
   };
 
   const updateDealStatus = (dealId, newStatus) => {
@@ -1400,7 +1400,7 @@ ${message.body || message.snippet}`,
       setProjects((prev) => prev.filter((x) => x.id !== id));
       setActivities((prev) => prev.filter((x) => x.relatedProjectId !== id));
     }
-    setImportMessage("Kayıt silindi.");
+    setImportMessage("Record deleted.");
     setView("details");
   };
 
@@ -1417,7 +1417,7 @@ ${message.body || message.snippet}`,
     if (type === "contact") setContacts((prev) => prev.map((x) => (x.id === item.id ? item : x)));
     if (type === "deal") setDeals((prev) => prev.map((x) => (x.id === item.id ? item : x)));
     if (type === "project") setProjects((prev) => prev.map((x) => (x.id === item.id ? item : x)));
-    setImportMessage("Kayıt güncellendi.");
+    setImportMessage("Record updated.");
     setView("details");
   };
 
@@ -1442,7 +1442,7 @@ ${message.body || message.snippet}`,
           billingCity: firstNonEmpty(r.citybilling, r.billingcity, r.city, r["city-billing"]),
           phone: firstNonEmpty(r.phone),
           mobile: firstNonEmpty(r.mobile),
-          email: firstNonEmpty(r.email),
+          eemail: firstNonEmpty(r.eemail),
           nextStep: firstNonEmpty(r.nextstep, r["next-step"]),
           lastActivity: firstNonEmpty(r.lastactivity, r["last-activity"]),
           owner: firstNonEmpty(r.owner),
@@ -1451,7 +1451,7 @@ ${message.body || message.snippet}`,
         }))
         .filter((x) => x.companyName);
       setCompanies((prev) => [...prev, ...mapped]);
-      setImportMessage(`${mapped.length} şirket içe aktarıldı.`);
+      setImportMessage(`${mapped.length} company import aktarildi.`);
     }
 
     if (mode === "contacts") {
@@ -1464,17 +1464,17 @@ ${message.body || message.snippet}`,
           jobTitle: firstNonEmpty(r.jobtitle, r["job-title"]),
           mobile: firstNonEmpty(r.mobile),
           business: firstNonEmpty(r.business),
-          email1: firstNonEmpty(r.email1, r.email, r["email-1"]),
+          eemail1: firstNonEmpty(r.eemail1, r.eemail, r["eemail-1"]),
           cityBusiness: firstNonEmpty(r.citybusiness, r["city-business"]),
           nextStep: firstNonEmpty(r.nextstep, r["next-step"]),
           lastActivity: firstNonEmpty(r.lastactivity, r["last-activity"]),
           owner: firstNonEmpty(r.owner),
-          description: firstNonEmpty(r.description, r["açıklama"], r.aciklama, r.detail, r.details),
+          description: firstNonEmpty(r.description, r["aciklama"], r.aciklama, r.detail, r.details),
           createdAt: new Date().toISOString(),
         }))
         .filter((x) => x.fullName);
       setContacts((prev) => [...prev, ...mapped]);
-      setImportMessage(`${mapped.length} kişi içe aktarıldı.`);
+      setImportMessage(`${mapped.length} contact import aktarildi.`);
     }
 
     if (mode === "deals") {
@@ -1492,7 +1492,7 @@ ${message.body || message.snippet}`,
         }))
         .filter((x) => x.customer && x.name);
       setDeals((prev) => [...prev, ...mapped]);
-      setImportMessage(`${mapped.length} deal içe aktarıldı.`);
+      setImportMessage(`${mapped.length} deal import aktarildi.`);
     }
 
     if (mode === "projects") {
@@ -1507,12 +1507,12 @@ ${message.body || message.snippet}`,
           dueDate: firstNonEmpty(r.duedate, r["due-date"]),
           estRevenue: Number(firstNonEmpty(r.estrevenue, r["est-revenue"], 0) || 0),
           owner: firstNonEmpty(r.owner),
-          description: firstNonEmpty(r.description, r["açıklama"], r.aciklama, r.detail, r.details),
+          description: firstNonEmpty(r.description, r["aciklama"], r.aciklama, r.detail, r.details),
           createdAt: new Date().toISOString(),
         }))
         .filter((x) => x.company && x.name);
       setProjects((prev) => [...prev, ...mapped]);
-      setImportMessage(`${mapped.length} proje içe aktarıldı.`);
+      setImportMessage(`${mapped.length} proje import aktarildi.`);
     }
   };
 
@@ -1532,22 +1532,22 @@ ${message.body || message.snippet}`,
             <img src="asklepius-logo.png" alt="Asklepius Logo" style={styles.logo} />
           </div>
           <div style={styles.brand}>ASKLEPIUS</div>
-          <div style={styles.subbrand}>TERCÜME HİZMETLERİ</div>
+          <div style={styles.subbrand}>TERCUME HIZMETLERI</div>
 
           <nav style={styles.sidebarMenu}>
             {[
               ["dashboard", "Dashboard"],
-              ["companies", "Şirketler"],
-              ["contacts", "Kişiler"],
+              ["companies", "Companies"],
+              ["contacts", "Contacts"],
               ["deals", "Deals"],
               ["projects", "Projects"],
-              ["details", "Detay"],
-              ["activities", "Aktiviteler"],
-              ["reports", "Raporlar"],
-              ["accounting", "Muhasebe"],
-              ["gmail", "Mailleri Getir"],
-              ["import", "İçe Aktar"],
-              ["settings", "Ayarlar"],
+              ["details", "Details"],
+              ["activities", "Activities"],
+              ["reports", "Reports"],
+              ["accounting", "Accounting"],
+              ["gemail", "Fetch emails"],
+              ["import", "Import"],
+              ["settings", "Settings"],
             ].map(([k, t]) => (
               <button key={k} onClick={() => setView(k)} style={view === k ? styles.sidebarButtonActive : styles.sidebarButton}>
                 {t}
@@ -1559,23 +1559,23 @@ ${message.body || message.snippet}`,
         <div style={{ marginTop: "auto", paddingTop: 16, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
           {!googleAuth ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ fontSize: 12, color: "#D1D5DB", marginBottom: 4 }}>Google Hesabı Bağla</div>
+              <div style={{ fontSize: 12, color: "#D1D5DB", marginBottom: 4 }}>Connect Google account</div>
               <button type="button" onClick={() => connectGoogleContacts()} style={{ ...styles.sidebarButton, background: "#fff", color: "#8A6322", fontWeight: 700 }}>
-                Google Kişilerini Bağla
+                Google Contactsini Bagla
               </button>
-              {googleLoading && <div style={{ fontSize: 12, color: "#D1D5DB" }}>Bağlanıyor...</div>}
+              {googleLoading && <div style={{ fontSize: 12, color: "#D1D5DB" }}>Connecting...</div>}
               {googleError && <div style={{ fontSize: 12, color: "#FCA5A5" }}>{googleError}</div>}
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <div style={{ fontSize: 12, color: "#BBF7D0", fontWeight: 700 }}>Google Bağlı</div>
-              <div style={{ fontSize: 11, color: "#E5E7EB" }}>{googleContacts.length} kişi eşleşti</div>
+              <div style={{ fontSize: 12, color: "#BBF7D0", fontWeight: 700 }}>Google connected</div>
+              <div style={{ fontSize: 11, color: "#E5E7EB" }}>{googleContacts.length} contacts matched</div>
               <button
                 type="button"
                 onClick={handleGoogleDisconnect}
                 style={{ ...styles.sidebarButton, fontSize: 12, padding: "6px 10px", color: "#FCA5A5", borderColor: "rgba(248,113,113,0.3)" }}
               >
-                Bağlantıyı Kes
+                Disconnect
               </button>
             </div>
           )}
@@ -1588,19 +1588,19 @@ ${message.body || message.snippet}`,
         {view === "dashboard" && (
           <section style={styles.grid2}>
             <div style={{ ...styles.kpiGrid, gridColumn: "1 / -1" }}>
-              <div style={styles.kpiCard}><div style={styles.kpiLabel}>Rezervasyonlu Deal</div><div style={styles.kpiValue}>{kpiSummary.reservedDeals}</div></div>
+              <div style={styles.kpiCard}><div style={styles.kpiLabel}>Reserved Deals</div><div style={styles.kpiValue}>{kpiSummary.reservedDeals}</div></div>
             </div>
 
-            <Panel title="Rezervasyonlu İşler">
+            <Panel title="Reserved Deals">
               {reservedDeals.length === 0 ? (
-                <p style={{ color: "#6B7280", fontSize: 14 }}>Rezervasyonlu iş yok.</p>
+                <p style={{ color: "#6B7280", fontSize: 14 }}>No reserved deals.</p>
               ) : (
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
                   {reservedDeals.map((d) => (
                     <li key={d.id} style={{ padding: "10px 12px", borderRadius: 10, background: "#fff8ea", border: "1px solid #f1e4c8" }}>
                       <div style={{ fontWeight: 600, fontSize: 14 }}>{d.name}</div>
                       <div style={{ fontSize: 13, color: "#6B7280" }}>{d.customer} · {d.dateReceived || "-"} · {money(d.estRevenue)}</div>
-                      <button onClick={() => openDetail("deal", d.id)} style={{ ...styles.smallBtn, marginTop: 6 }}>Detay</button>
+                      <button onClick={() => openDetail("deal", d.id)} style={{ ...styles.smallBtn, marginTop: 6 }}>Details</button>
                     </li>
                   ))}
                 </ul>
@@ -1609,14 +1609,14 @@ ${message.body || message.snippet}`,
 
             <Panel title="Closed Won">
               {deals.filter((d) => d.status === "closed won").length === 0 ? (
-                <p style={{ color: "#6B7280", fontSize: 14 }}>Henüz closed won deal yok.</p>
+                <p style={{ color: "#6B7280", fontSize: 14 }}>No closed-won deals yet.</p>
               ) : (
                 <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 8 }}>
                   {deals
                     .filter((d) => d.status === "closed won")
                     .slice()
                     .sort((a, b) => {
-                      // En son kapanan üstte
+                      // En son kapanan ustte
                       const dateA = String(a.estCloseDate || a.dateReceived || a.createdAt || "");
                       const dateB = String(b.estCloseDate || b.dateReceived || b.createdAt || "");
                       return dateB.localeCompare(dateA);
@@ -1625,7 +1625,7 @@ ${message.body || message.snippet}`,
                       <li key={d.id} style={{ padding: "10px 12px", borderRadius: 10, background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
                         <div style={{ fontWeight: 600, fontSize: 14 }}>{d.name}</div>
                         <div style={{ fontSize: 13, color: "#6B7280" }}>{d.customer} · {d.dateReceived || "-"} · {money(d.estRevenue)}</div>
-                        <button onClick={() => openDetail("deal", d.id)} style={{ ...styles.smallBtn, marginTop: 6 }}>Detay</button>
+                        <button onClick={() => openDetail("deal", d.id)} style={{ ...styles.smallBtn, marginTop: 6 }}>Details</button>
                       </li>
                     ))}
                 </ul>
@@ -1636,10 +1636,10 @@ ${message.body || message.snippet}`,
 
         {view === "companies" && (
           <section style={styles.grid2}>
-            <Panel title="Şirketler Listesi">
+            <Panel title="Company list">
               <input
                 type="text"
-                placeholder="Şirket adı, şehir veya e-posta ile ara…"
+                placeholder="Search by company name, city, or eemail…"
                 value={companySearch}
                 onChange={(e) => setCompanySearch(e.target.value)}
                 style={{ ...styles.input, marginBottom: 12, width: "100%", boxSizing: "border-box" }}
@@ -1651,54 +1651,54 @@ ${message.body || message.snippet}`,
                   return (
                     (c.companyName || "").toLowerCase().includes(q) ||
                     (c.billingCity || "").toLowerCase().includes(q) ||
-                    (c.email || "").toLowerCase().includes(q) ||
+                    (c.eemail || "").toLowerCase().includes(q) ||
                     (c.phone || "").toLowerCase().includes(q)
                   );
                 })
                 .map((c) => (
                 <Card key={c.id}>
                   <b>{c.companyName}</b>
-                  <div>{c.billingCity} · {c.phone} · {c.email || "-"}</div>
+                  <div>{c.billingCity} · {c.phone} · {c.eemail || "-"}</div>
                   <div style={styles.cardActions}>
-                    <button onClick={() => openDetail("company", c.id)} style={styles.smallBtn}>Detay</button>
-                    <button onClick={() => startEdit("company", c)} style={styles.smallBtn}>Düzenle</button>
-                    <button onClick={() => deleteRecord("company", c.id)} style={styles.smallDanger}>Sil</button>
+                    <button onClick={() => openDetail("company", c.id)} style={styles.smallBtn}>Details</button>
+                    <button onClick={() => startEdit("company", c)} style={styles.smallBtn}>Edit</button>
+                    <button onClick={() => deleteRecord("company", c.id)} style={styles.smallDanger}>Delete</button>
                   </div>
                 </Card>
               ))}
             </Panel>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <Panel title="Şirketler">
-                <button style={styles.smallBtn} type="button" onClick={() => setOpenForms((p) => ({ ...p, company: !p.company }))}>+ Yeni Şirket</button>
+              <Panel title="Companies">
+                <button style={styles.smallBtn} type="button" onClick={() => setOpenForms((p) => ({ ...p, company: !p.company }))}>+ New Company</button>
                 {openForms.company && (
                   <div style={{ marginTop: 12 }}>
                     <div style={styles.filters}>
-                      <input style={styles.input} placeholder="Şirket adı" value={companyForm.companyName} onChange={(e) => setCompanyForm((p) => ({ ...p, companyName: e.target.value }))} />
+                      <input style={styles.input} placeholder="Company name" value={companyForm.companyName} onChange={(e) => setCompanyForm((p) => ({ ...p, companyName: e.target.value }))} />
                       <input style={styles.input} placeholder="Billing city" value={companyForm.billingCity} onChange={(e) => setCompanyForm((p) => ({ ...p, billingCity: e.target.value }))} />
                     </div>
                     <div style={styles.filters}>
-                      <input style={styles.input} placeholder="Telefon" value={companyForm.phone} onChange={(e) => setCompanyForm((p) => ({ ...p, phone: e.target.value }))} />
-                      <input style={styles.input} placeholder="Email" value={companyForm.email} onChange={(e) => setCompanyForm((p) => ({ ...p, email: e.target.value }))} />
+                      <input style={styles.input} placeholder="Phone" value={companyForm.phone} onChange={(e) => setCompanyForm((p) => ({ ...p, phone: e.target.value }))} />
+                      <input style={styles.input} placeholder="Email" value={companyForm.eemail} onChange={(e) => setCompanyForm((p) => ({ ...p, eemail: e.target.value }))} />
                     </div>
                     <div style={{ marginTop: 8 }}>
-                      <div style={{ marginBottom: 6 }}>Bağlı kişiler</div>
+                      <div style={{ marginBottom: 6 }}>Linked contacts</div>
                       <select multiple value={companyForm.contactIds} onChange={(e) => setCompanyForm((p) => ({ ...p, contactIds: Array.from(e.target.selectedOptions, (o) => o.value) }))} style={{ ...styles.input, height: 120 }}>
                         {contacts.map((contact) => <option key={contact.id} value={contact.id}>{contact.fullName}</option>)}
                       </select>
                     </div>
                     <div style={styles.filters}>
-                      <button style={styles.smallBtn} onClick={addCompany} type="button">Kaydet</button>
-                      <button style={styles.smallBtn} onClick={() => { resetCompanyForm(); setOpenForms((p) => ({ ...p, company: false })); }} type="button">İptal</button>
+                      <button style={styles.smallBtn} onClick={addCompany} type="button">Save</button>
+                      <button style={styles.smallBtn} onClick={() => { resetCompanyForm(); setOpenForms((p) => ({ ...p, company: false })); }} type="button">Cancel</button>
                     </div>
                   </div>
                 )}
               </Panel>
 
-              <Panel title="Şirket Özeti">
-                <p>Toplam şirket: {companies.length}</p>
-                <p>Bağlı kişi: {contacts.filter((x) => x.company).length}</p>
-                <p>Bağlı deal: {deals.filter((x) => x.customer).length}</p>
+              <Panel title="Company summary">
+                <p>Total companies: {companies.length}</p>
+                <p>Linked contacts: {contacts.filter((x) => x.company).length}</p>
+                <p>Linked deals: {deals.filter((x) => x.customer).length}</p>
               </Panel>
             </div>
           </section>
@@ -1706,10 +1706,10 @@ ${message.body || message.snippet}`,
 
         {view === "contacts" && (
           <section style={styles.grid2}>
-            <Panel title="Kişiler Listesi">
+            <Panel title="Contact list">
               <input
                 type="text"
-                placeholder="İsim, şirket veya e-posta ile ara…"
+                placeholder="Search by name, company, or eemail…"
                 value={contactSearch}
                 onChange={(e) => setContactSearch(e.target.value)}
                 style={{ ...styles.input, marginBottom: 12, width: "100%", boxSizing: "border-box" }}
@@ -1721,7 +1721,7 @@ ${message.body || message.snippet}`,
                   return (
                     (c.fullName || "").toLowerCase().includes(q) ||
                     (c.company || "").toLowerCase().includes(q) ||
-                    (c.email1 || "").toLowerCase().includes(q) ||
+                    (c.eemail1 || "").toLowerCase().includes(q) ||
                     (c.mobile || "").toLowerCase().includes(q)
                   );
                 })
@@ -1730,15 +1730,15 @@ ${message.body || message.snippet}`,
                 return (
                   <Card key={c.id}>
                     <b>{c.fullName}</b>
-                    <div>{c.company} {companyMatch ? "-" : ""} {c.jobTitle} - {c.email1}</div>
+                    <div>{c.company} {companyMatch ? "-" : ""} {c.jobTitle} - {c.eemail1}</div>
                     <div style={{ marginTop: 6, fontSize: 12, color: c.googleMatched ? "#15803d" : "#9CA3AF", fontWeight: 600 }}>
-                      {c.googleMatched ? `Google eşleşti${c.googleName ? `: ${c.googleName}` : ""}` : "Google eşleşmedi"}
+                      {c.googleMatched ? `Matched in Google Contacts${c.googleName ? `: ${c.googleName}` : ""}` : "No Google match"}
                     </div>
                     {c.googleMatched && c.googleEmail && <div style={{ fontSize: 12, color: "#6B7280", marginTop: 4 }}>Google Email: {c.googleEmail}</div>}
                     <div style={styles.cardActions}>
-                      <button onClick={() => openDetail("contact", c.id)} style={styles.smallBtn}>Detay</button>
-                      <button onClick={() => startEdit("contact", c)} style={styles.smallBtn}>Düzenle</button>
-                      <button onClick={() => deleteRecord("contact", c.id)} style={styles.smallDanger}>Sil</button>
+                      <button onClick={() => openDetail("contact", c.id)} style={styles.smallBtn}>Details</button>
+                      <button onClick={() => startEdit("contact", c)} style={styles.smallBtn}>Edit</button>
+                      <button onClick={() => deleteRecord("contact", c.id)} style={styles.smallDanger}>Delete</button>
                     </div>
                   </Card>
                 );
@@ -1746,36 +1746,36 @@ ${message.body || message.snippet}`,
             </Panel>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <Panel title="Kişiler">
-                <button style={styles.smallBtn} type="button" onClick={() => setOpenForms((p) => ({ ...p, contact: !p.contact }))}>+ Yeni Kişi</button>
+              <Panel title="Contacts">
+                <button style={styles.smallBtn} type="button" onClick={() => setOpenForms((p) => ({ ...p, contact: !p.contact }))}>+ New Contact</button>
                 {openForms.contact && (
                   <div style={{ marginTop: 12 }}>
                     <div style={styles.filters}>
-                      <input style={styles.input} placeholder="Ad soyad" value={contactForm.fullName} onChange={(e) => setContactForm((p) => ({ ...p, fullName: e.target.value }))} />
-                      <input style={styles.input} placeholder="Ünvan" value={contactForm.jobTitle} onChange={(e) => setContactForm((p) => ({ ...p, jobTitle: e.target.value }))} />
+                      <input style={styles.input} placeholder="Full name" value={contactForm.fullName} onChange={(e) => setContactForm((p) => ({ ...p, fullName: e.target.value }))} />
+                      <input style={styles.input} placeholder="Job title" value={contactForm.jobTitle} onChange={(e) => setContactForm((p) => ({ ...p, jobTitle: e.target.value }))} />
                     </div>
                     <div style={styles.filters}>
-                      <input style={styles.input} placeholder="Cep telefonu" value={contactForm.mobile} onChange={(e) => setContactForm((p) => ({ ...p, mobile: e.target.value }))} />
-                      <input style={styles.input} placeholder="Email" value={contactForm.email1} onChange={(e) => setContactForm((p) => ({ ...p, email1: e.target.value }))} />
+                      <input style={styles.input} placeholder="Mobile phone" value={contactForm.mobile} onChange={(e) => setContactForm((p) => ({ ...p, mobile: e.target.value }))} />
+                      <input style={styles.input} placeholder="Email" value={contactForm.eemail1} onChange={(e) => setContactForm((p) => ({ ...p, eemail1: e.target.value }))} />
                     </div>
                     <div style={{ marginTop: 8 }}>
-                      <div style={{ marginBottom: 6 }}>Bağlı şirketler</div>
+                      <div style={{ marginBottom: 6 }}>Linked companies</div>
                       <select multiple value={contactForm.companyIds} onChange={(e) => setContactForm((p) => ({ ...p, companyIds: Array.from(e.target.selectedOptions, (o) => o.value) }))} style={{ ...styles.input, height: 120 }}>
                         {companies.map((company) => <option key={company.id} value={company.id}>{company.companyName}</option>)}
                       </select>
                     </div>
                     <div style={styles.filters}>
-                      <button style={styles.smallBtn} onClick={addContact} type="button">Kaydet</button>
-                      <button style={styles.smallBtn} onClick={() => { resetContactForm(); setOpenForms((p) => ({ ...p, contact: false })); }} type="button">İptal</button>
+                      <button style={styles.smallBtn} onClick={addContact} type="button">Save</button>
+                      <button style={styles.smallBtn} onClick={() => { resetContactForm(); setOpenForms((p) => ({ ...p, contact: false })); }} type="button">Cancel</button>
                     </div>
                   </div>
                 )}
               </Panel>
 
-              <Panel title="Şirket Eşleştirme">
-                <p>Şirket adı CSV’de şirketler ile eşleşirse kişi otomatik bağlı görünür.</p>
-                <p>Boşsa kişi bağımsız kalır.</p>
-                <p style={{ marginTop: 12 }}>Google Contacts bağlantısı aktifse eşleşmeler kişi kartlarında ayrıca gösterilir.</p>
+              <Panel title="Company matching">
+                <p>Company name CSV’de companies eslesirse contact otomatik linked gorunur.</p>
+                <p>If empty, the contact remains unlinked.</p>
+                <p style={{ marginTop: 12 }}>If Google Contacts integration is active, matches are also shown on contact cards.</p>
               </Panel>
             </div>
           </section>
@@ -1783,52 +1783,52 @@ ${message.body || message.snippet}`,
 
         {view === "deals" && (
           <section style={styles.grid2}>
-            <Panel title="Deal Filtreleri">
+            <Panel title="Deal filters">
               <div style={styles.filters}>
                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={styles.input}>
-                  <option value="">Tüm statüler</option>
+                  <option value="">All statuses</option>
                   {dealStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
                 <select value={companyFilter} onChange={(e) => setCompanyFilter(e.target.value)} style={styles.input}>
-                  <option value="">Tüm şirketler</option>
+                  <option value="">All companies</option>
                   {companies.map((c) => <option key={c.id} value={c.companyName}>{c.companyName}</option>)}
                 </select>
                 <select value={contactFilter} onChange={(e) => setContactFilter(e.target.value)} style={styles.input}>
-                  <option value="">Tüm kişiler</option>
+                  <option value="">All contacts</option>
                   {contacts.map((c) => <option key={c.id} value={c.fullName}>{c.fullName}</option>)}
                 </select>
               </div>
               <div style={styles.filters}>
                 <select value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} style={styles.input}>
-                  <option value="">Tüm yıllar</option>
+                  <option value="">All years</option>
                   <option value="2024">2024</option>
                   <option value="2025">2025</option>
                   <option value="2026">2026</option>
                 </select>
                 <input type="month" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} style={styles.input} />
-                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Ara..." style={styles.input} />
+                <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search..." style={styles.input} />
               </div>
             </Panel>
 
-            <Panel title="Dealler">
-              <button style={styles.smallBtn} type="button" onClick={() => setOpenForms((p) => ({ ...p, deal: !p.deal }))}>+ Yeni Deal</button>
+            <Panel title="Deals">
+              <button style={styles.smallBtn} type="button" onClick={() => setOpenForms((p) => ({ ...p, deal: !p.deal }))}>+ New Deal</button>
               {openForms.deal && (
                 <div style={{ marginTop: 12 }}>
                   <div style={styles.filters}>
-                    <input style={styles.input} placeholder="Deal adı" value={dealForm.name} onChange={(e) => setDealForm((p) => ({ ...p, name: e.target.value }))} />
+                    <input style={styles.input} placeholder="Deal name" value={dealForm.name} onChange={(e) => setDealForm((p) => ({ ...p, name: e.target.value }))} />
                     <select style={styles.input} value={dealForm.customerId} onChange={(e) => {
                       const companyId = e.target.value;
                       const selectedCompany = getCompanyById(companyId);
                       const firstContactId = selectedCompany?.contactIds?.[0] || "";
                       setDealForm((p) => ({ ...p, customerId: companyId, contactPersonId: firstContactId }));
                     }}>
-                      <option value="">Şirket seç</option>
+                      <option value="">Select company</option>
                       {companies.map((company) => <option key={company.id} value={company.id}>{company.companyName}</option>)}
                     </select>
                   </div>
                   <div style={styles.filters}>
                     <select style={styles.input} value={dealForm.contactPersonId} onChange={(e) => setDealForm((p) => ({ ...p, contactPersonId: e.target.value }))}>
-                      <option value="">Kişi seç</option>
+                      <option value="">Select contact</option>
                       {contacts.filter((contact) => !dealForm.customerId ? true : (contact.companyIds || []).includes(dealForm.customerId)).map((contact) => <option key={contact.id} value={contact.id}>{contact.fullName}</option>)}
                     </select>
                     <input style={styles.input} type="date" value={dealForm.dateReceived} onChange={(e) => setDealForm((p) => ({ ...p, dateReceived: e.target.value }))} />
@@ -1837,21 +1837,21 @@ ${message.body || message.snippet}`,
                     <select style={styles.input} value={dealForm.status} onChange={(e) => setDealForm((p) => ({ ...p, status: e.target.value }))}>
                       {dealStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
-                    <input style={styles.input} type="number" placeholder="Tahmini gelir" value={dealForm.estRevenue} onChange={(e) => setDealForm((p) => ({ ...p, estRevenue: e.target.value }))} />
+                    <input style={styles.input} type="number" placeholder="Estimated revenue" value={dealForm.estRevenue} onChange={(e) => setDealForm((p) => ({ ...p, estRevenue: e.target.value }))} />
                   </div>
                   <div style={styles.filters}>
                     <input style={styles.input} type="date" value={dealForm.estCloseDate} onChange={(e) => setDealForm((p) => ({ ...p, estCloseDate: e.target.value }))} />
-                    <input style={styles.input} placeholder="Not" value={dealForm.note} onChange={(e) => setDealForm((p) => ({ ...p, note: e.target.value }))} />
+                    <input style={styles.input} placeholder="Note" value={dealForm.note} onChange={(e) => setDealForm((p) => ({ ...p, note: e.target.value }))} />
                   </div>
                   <div style={styles.filters}>
                     <select style={styles.input} value={dealForm.projectId} onChange={(e) => setDealForm((p) => ({ ...p, projectId: e.target.value }))}>
-                      <option value="">Proje seç (opsiyonel)</option>
+                      <option value="">Select project (optional)</option>
                       {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
                   </div>
                   <div style={styles.filters}>
-                    <button style={styles.smallBtn} onClick={addDeal} type="button">Kaydet</button>
-                    <button style={styles.smallBtn} onClick={() => { resetDealForm(); setOpenForms((p) => ({ ...p, deal: false })); }} type="button">İptal</button>
+                    <button style={styles.smallBtn} onClick={addDeal} type="button">Save</button>
+                    <button style={styles.smallBtn} onClick={() => { resetDealForm(); setOpenForms((p) => ({ ...p, deal: false })); }} type="button">Cancel</button>
                   </div>
                 </div>
               )}
@@ -1862,9 +1862,9 @@ ${message.body || message.snippet}`,
                   <div>{d.customer} · {d.contactPerson} - {d.status}</div>
                   <div>{d.dateReceived} · {money(d.estRevenue)} · {d.estCloseDate || "-"}</div>
                   <div style={styles.cardActions}>
-                    <button onClick={() => openDetail("deal", d.id)} style={styles.smallBtn}>Detay</button>
-                    <button onClick={() => startEdit("deal", d)} style={styles.smallBtn}>Düzenle</button>
-                    <button onClick={() => deleteRecord("deal", d.id)} style={styles.smallDanger}>Sil</button>
+                    <button onClick={() => openDetail("deal", d.id)} style={styles.smallBtn}>Details</button>
+                    <button onClick={() => startEdit("deal", d)} style={styles.smallBtn}>Edit</button>
+                    <button onClick={() => deleteRecord("deal", d.id)} style={styles.smallDanger}>Delete</button>
                   </div>
                 </Card>
               ))}
@@ -1874,48 +1874,48 @@ ${message.body || message.snippet}`,
 
         {view === "projects" && (
           <section style={styles.grid2}>
-            <Panel title="Projects Listesi">
+            <Panel title="Project list">
               {projects.map((p) => (
                 <Card key={p.id}>
                   <b>{p.name}</b>
                   <div>{p.company} · {p.contactPerson} - {p.status}</div>
                   <div>{p.startDate} - {p.dueDate} - {money(p.estRevenue)}</div>
                   <div style={styles.cardActions}>
-                    <button onClick={() => openDetail("project", p.id)} style={styles.smallBtn}>Detay</button>
-                    <button onClick={() => startEdit("project", p)} style={styles.smallBtn}>Düzenle</button>
-                    <button onClick={() => deleteRecord("project", p.id)} style={styles.smallDanger}>Sil</button>
+                    <button onClick={() => openDetail("project", p.id)} style={styles.smallBtn}>Details</button>
+                    <button onClick={() => startEdit("project", p)} style={styles.smallBtn}>Edit</button>
+                    <button onClick={() => deleteRecord("project", p.id)} style={styles.smallDanger}>Delete</button>
                   </div>
                 </Card>
               ))}
             </Panel>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-              <Panel title="Projeler">
-                <button style={styles.smallBtn} type="button" onClick={() => setOpenForms((p) => ({ ...p, project: !p.project }))}>+ Yeni Proje</button>
+              <Panel title="Projects">
+                <button style={styles.smallBtn} type="button" onClick={() => setOpenForms((p) => ({ ...p, project: !p.project }))}>+ New Project</button>
                 {openForms.project && (
                   <div style={{ marginTop: 12 }}>
                     <div style={styles.filters}>
-                      <input style={styles.input} placeholder="Proje adı" value={projectForm.name} onChange={(e) => setProjectForm((p) => ({ ...p, name: e.target.value }))} />
+                      <input style={styles.input} placeholder="Project name" value={projectForm.name} onChange={(e) => setProjectForm((p) => ({ ...p, name: e.target.value }))} />
                       <select style={styles.input} value={projectForm.companyId} onChange={(e) => {
                         const companyId = e.target.value;
                         const selectedCompany = getCompanyById(companyId);
                         const firstContactId = selectedCompany?.contactIds?.[0] || "";
                         setProjectForm((p) => ({ ...p, companyId, contactPersonId: firstContactId }));
                       }}>
-                        <option value="">Şirket seç</option>
+                        <option value="">Select company</option>
                         {companies.map((company) => <option key={company.id} value={company.id}>{company.companyName}</option>)}
                       </select>
                     </div>
                     <div style={styles.filters}>
                       <select style={styles.input} value={projectForm.contactPersonId} onChange={(e) => setProjectForm((p) => ({ ...p, contactPersonId: e.target.value }))}>
-                        <option value="">Kişi seç</option>
+                        <option value="">Select contact</option>
                         {contacts.filter((contact) => !projectForm.companyId ? true : (contact.companyIds || []).includes(projectForm.companyId)).map((contact) => <option key={contact.id} value={contact.id}>{contact.fullName}</option>)}
                       </select>
                       <select style={styles.input} value={projectForm.status} onChange={(e) => setProjectForm((p) => ({ ...p, status: e.target.value }))}>
-                        <option value="işlemde">İşlemde</option>
-                        <option value="beklemede">Beklemede</option>
-                        <option value="tamamlandı">Tamamlandı</option>
-                        <option value="iptal">İptal</option>
+                        <option value="in progress">Actionde</option>
+                        <option value="on hold">Beklemede</option>
+                        <option value="completed">Tamamlandi</option>
+                        <option value="cancelled">Cancel</option>
                       </select>
                     </div>
                     <div style={styles.filters}>
@@ -1923,23 +1923,23 @@ ${message.body || message.snippet}`,
                       <input style={styles.input} type="date" value={projectForm.dueDate} onChange={(e) => setProjectForm((p) => ({ ...p, dueDate: e.target.value }))} />
                     </div>
                     <div style={styles.filters}>
-                      <input style={styles.input} type="number" placeholder="Tahmini gelir" value={projectForm.estRevenue} onChange={(e) => setProjectForm((p) => ({ ...p, estRevenue: e.target.value }))} />
-                      <input style={styles.input} placeholder="Sorumlu" value={projectForm.owner} onChange={(e) => setProjectForm((p) => ({ ...p, owner: e.target.value }))} />
+                      <input style={styles.input} type="number" placeholder="Estimated revenue" value={projectForm.estRevenue} onChange={(e) => setProjectForm((p) => ({ ...p, estRevenue: e.target.value }))} />
+                      <input style={styles.input} placeholder="Owner" value={projectForm.owner} onChange={(e) => setProjectForm((p) => ({ ...p, owner: e.target.value }))} />
                     </div>
                     <div style={styles.filters}>
-                      <input style={styles.input} placeholder="Not" value={projectForm.note} onChange={(e) => setProjectForm((p) => ({ ...p, note: e.target.value }))} />
+                      <input style={styles.input} placeholder="Note" value={projectForm.note} onChange={(e) => setProjectForm((p) => ({ ...p, note: e.target.value }))} />
                     </div>
                     <div style={styles.filters}>
-                      <button style={styles.smallBtn} onClick={addProject} type="button">Kaydet</button>
-                      <button style={styles.smallBtn} onClick={() => { resetProjectForm(); setOpenForms((p) => ({ ...p, project: false })); }} type="button">İptal</button>
+                      <button style={styles.smallBtn} onClick={addProject} type="button">Save</button>
+                      <button style={styles.smallBtn} onClick={() => { resetProjectForm(); setOpenForms((p) => ({ ...p, project: false })); }} type="button">Cancel</button>
                     </div>
                   </div>
                 )}
               </Panel>
 
-              <Panel title="Project Özeti">
-                <p>Toplam proje: {projects.length}</p>
-                <p>Aktif proje: {projects.filter((p) => p.status === "işlemde").length}</p>
+              <Panel title="Project summary">
+                <p>Total projects: {projects.length}</p>
+                <p>Active projects: {projects.filter((p) => p.status === "in progress").length}</p>
               </Panel>
             </div>
           </section>
@@ -1947,37 +1947,37 @@ ${message.body || message.snippet}`,
 
         {view === "details" && (
           <section style={styles.grid2}>
-            <Panel title="Kayıt Detay">
+            <Panel title="Record details">
               <button
                 onClick={() => setView(previousView)}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "#8A6322", fontWeight: 600, fontSize: 13, marginBottom: 12, padding: 0, display: "flex", alignItems: "center", gap: 4 }}
               >
-                ← Geri Dön
+                ← Back
               </button>
               {activeRecord ? (
                 <>
                   <p><b>{entityLabel(activeRecord, activeDetailType)}</b></p>
-                  <p>Tip: {activeDetailType}</p>
+                  <p>Type: {activeDetailType}</p>
                   <p>
-                    {activeDetailType === "company" && `${activeRecord.billingCity || "-"} · ${activeRecord.phone || "-"} · ${activeRecord.email || "-"}`}
-                    {activeDetailType === "contact" && `${activeRecord.company || "-"} · ${activeRecord.jobTitle || "-"} · ${activeRecord.email1 || "-"}`}
+                    {activeDetailType === "company" && `${activeRecord.billingCity || "-"} · ${activeRecord.phone || "-"} · ${activeRecord.eemail || "-"}`}
+                    {activeDetailType === "contact" && `${activeRecord.company || "-"} · ${activeRecord.jobTitle || "-"} · ${activeRecord.eemail1 || "-"}`}
                     {activeDetailType === "deal" && `${activeRecord.customer || "-"} · ${activeRecord.contactPerson || "-"} · ${activeRecord.status}`}
                     {activeDetailType === "project" && `${activeRecord.company || "-"} · ${activeRecord.contactPerson || "-"} · ${activeRecord.status}`}
                   </p>
                   <div style={styles.cardActions}>
-                    <button onClick={() => startEdit(activeDetailType, activeRecord)} style={styles.smallBtn}>Düzenle</button>
-                    <button onClick={() => deleteRecord(activeDetailType, activeDetailId)} style={styles.smallDanger}>Sil</button>
+                    <button onClick={() => startEdit(activeDetailType, activeRecord)} style={styles.smallBtn}>Edit</button>
+                    <button onClick={() => deleteRecord(activeDetailType, activeDetailId)} style={styles.smallDanger}>Delete</button>
                   </div>
                 </>
               ) : (
-                <p>Kayıt seçilmedi.</p>
+                <p>No record selected.</p>
               )}
             </Panel>
 
-            <Panel title="Aktivite Timeline">
+            <Panel title="Activity timeline">
               <div style={styles.filters}>
                 <select value={activityFilter} onChange={(e) => setActivityFilter(e.target.value)} style={styles.input}>
-                  <option value="all">Tümü</option>
+                  <option value="all">All</option>
                   {activityTypes.map((t) => <option key={t} value={t}>{t}</option>)}
                 </select>
                 <input type="date" value={activityFrom} onChange={(e) => setActivityFrom(e.target.value)} style={styles.input} />
@@ -1991,15 +1991,15 @@ ${message.body || message.snippet}`,
                       <b>{a.subject}</b>
                       <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
                         {a.type} · {a.direction}
-                        {a.source === "gmail-manual" && <span style={{ marginLeft: 6, background: "#dbeafe", color: "#1e40af", borderRadius: 99, padding: "1px 7px", fontSize: 11, fontWeight: 600 }}>Gmail</span>}
-                        {" · "}{new Date(a.createdAt).toLocaleString("tr-TR")}
+                        {a.source === "gemail-manual" && <span style={{ marginLeft: 6, background: "#dbeafe", color: "#1e40af", borderRadius: 99, padding: "1px 7px", fontSize: 11, fontWeight: 600 }}>Gmail</span>}
+                        {" · "}{new Date(a.createdAt).toLocaleString("en-US")}
                       </div>
                       <div style={{ marginTop: 4, fontSize: 13, whiteSpace: "pre-wrap" }}>{a.body}</div>
                     </div>
                     <button
                       onClick={() => deleteActivity(a.id)}
                       style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: 16, padding: "2px 4px", flexShrink: 0 }}
-                      title="Sil"
+                      title="Delete"
                     >🗑</button>
                   </div>
                 </div>
@@ -2014,14 +2014,14 @@ ${message.body || message.snippet}`,
                   <option value="incoming">incoming</option>
                   <option value="outgoing">outgoing</option>
                 </select>
-                <input placeholder="Başlık" value={activityForm.subject} onChange={(e) => setActivityForm({ ...activityForm, subject: e.target.value })} style={styles.input} />
-                <textarea placeholder="Açıklama" value={activityForm.body} onChange={(e) => setActivityForm({ ...activityForm, body: e.target.value })} style={styles.textarea} />
-                <button style={styles.primaryBtn}>Aktivite Ekle</button>
+                <input placeholder="Subject" value={activityForm.subject} onChange={(e) => setActivityForm({ ...activityForm, subject: e.target.value })} style={styles.input} />
+                <textarea placeholder="Description" value={activityForm.body} onChange={(e) => setActivityForm({ ...activityForm, body: e.target.value })} style={styles.textarea} />
+                <button style={styles.primaryBtn}>Add Activity</button>
               </form>
 
               {activeRecord && activeDetailType === "project" && (
                 <div style={{ marginTop: 24 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Proje Gelişmeleri</h3>
+                  <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Project Updates</h3>
                   <div style={{ display: "grid", gap: 8, marginBottom: 10 }}>
                     <label style={styles.field}>
                       <span style={styles.label}>Tarih</span>
@@ -2033,26 +2033,26 @@ ${message.body || message.snippet}`,
                       />
                     </label>
                     <label style={styles.field}>
-                      <span style={styles.label}>Not</span>
+                      <span style={styles.label}>Note</span>
                       <textarea
                         value={projectUpdateForm.note}
                         onChange={(e) => setProjectUpdateForm((f) => ({ ...f, note: e.target.value }))}
                         style={styles.textarea}
-                        placeholder="Bugünkü gelişmeyi yaz..."
+                        placeholder="Write today's update..."
                       />
                     </label>
-                    <button type="button" onClick={addProjectUpdate} style={styles.primaryBtn}>Gelişme Ekle</button>
+                    <button type="button" onClick={addProjectUpdate} style={styles.primaryBtn}>Add Update</button>
                   </div>
 
                   {(activeRecord.updates || []).length === 0 ? (
-                    <p style={styles.mutedDark}>Henüz gelişme eklenmemiş.</p>
+                    <p style={styles.mutedDark}>No updates added yet.</p>
                   ) : (
                     <div style={{ maxHeight: 220, overflowY: "auto" }}>
                       <table style={styles.table}>
                         <thead>
                           <tr>
                             <th style={styles.th}>Tarih</th>
-                            <th style={styles.th}>Not</th>
+                            <th style={styles.th}>Note</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2071,18 +2071,18 @@ ${message.body || message.snippet}`,
                   )}
 
                   <div style={{ marginTop: 16 }}>
-                    <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Bağlı Deal'ler</h3>
+                    <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>Linked Deal'ler</h3>
                     {deals.filter((d) => d.projectId === activeRecord.id).length === 0 ? (
-                      <p style={styles.mutedDark}>Bu projeye bağlı deal yok.</p>
+                      <p style={styles.mutedDark}>There are no deals linked to this project.</p>
                     ) : (
                       <div style={{ maxHeight: 220, overflowY: "auto" }}>
                         <table style={styles.table}>
                           <thead>
                             <tr>
                               <th style={styles.th}>Deal</th>
-                              <th style={styles.th}>Şirket</th>
-                              <th style={styles.th}>Gelir</th>
-                              <th style={styles.th}>Statü</th>
+                              <th style={styles.th}>Company</th>
+                              <th style={styles.th}>Revenue</th>
+                              <th style={styles.th}>Statu</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -2109,7 +2109,7 @@ ${message.body || message.snippet}`,
 
         {view === "activities" && (
           <section style={styles.grid2}>
-            <Panel title="Aktivite Listesi">
+            <Panel title="Activity list">
               {activities.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((a) => (
                 <div key={a.id} style={{ ...styles.card, position: "relative" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
@@ -2117,48 +2117,48 @@ ${message.body || message.snippet}`,
                       <b>{a.subject}</b>
                       <div style={{ fontSize: 12, color: "#6b7280", marginTop: 2 }}>
                         {a.entityType} · {a.type}
-                        {a.source === "gmail-manual" && <span style={{ marginLeft: 6, background: "#dbeafe", color: "#1e40af", borderRadius: 99, padding: "1px 7px", fontSize: 11, fontWeight: 600 }}>Gmail</span>}
-                        {" · "}{new Date(a.createdAt).toLocaleString("tr-TR")}
+                        {a.source === "gemail-manual" && <span style={{ marginLeft: 6, background: "#dbeafe", color: "#1e40af", borderRadius: 99, padding: "1px 7px", fontSize: 11, fontWeight: 600 }}>Gmail</span>}
+                        {" · "}{new Date(a.createdAt).toLocaleString("en-US")}
                       </div>
                       <div style={{ marginTop: 4, fontSize: 13 }}>{a.body}</div>
                     </div>
                     <button
                       onClick={() => deleteActivity(a.id)}
                       style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: 16, padding: "2px 4px", flexShrink: 0 }}
-                      title="Sil"
+                      title="Delete"
                     >🗑</button>
                   </div>
                 </div>
               ))}
             </Panel>
-            <Panel title="Aktivite Özeti">
-              <p>Toplam aktivite: {activities.length}</p>
-              <p>Email: {activities.filter((a) => a.type === "email").length}</p>
-              <p>Not: {activities.filter((a) => a.type === "note").length}</p>
+            <Panel title="Activity summary">
+              <p>Total activities: {activities.length}</p>
+              <p>Email: {activities.filter((a) => a.type === "eemail").length}</p>
+              <p>Note: {activities.filter((a) => a.type === "note").length}</p>
             </Panel>
           </section>
         )}
 
         {view === "reports" && (
           <section style={styles.grid2}>
-            <Panel title={`${reportYearFilter || 'Tüm'} Gelir Raporu`}>
+            <Panel title={`${reportYearFilter || 'Tum'} Revenue Raporu`}>
               <div style={styles.filters}>
                 <select value={reportStatusFilter} onChange={(e) => setReportStatusFilter(e.target.value)} style={styles.input}>
-                  <option value="">Tüm statüler</option>
+                  <option value="">All statuses</option>
                   {dealStatuses.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select>
                 <select value={reportCompanyFilter} onChange={(e) => setReportCompanyFilter(e.target.value)} style={styles.input}>
-                  <option value="">Tüm şirketler</option>
+                  <option value="">All companies</option>
                   {companies.map((c) => <option key={c.id} value={c.companyName}>{c.companyName}</option>)}
                 </select>
                 <select value={reportContactFilter} onChange={(e) => setReportContactFilter(e.target.value)} style={styles.input}>
-                  <option value="">Tüm kişiler</option>
+                  <option value="">All contacts</option>
                   {contacts.map((c) => <option key={c.id} value={c.fullName}>{c.fullName}</option>)}
                 </select>
               </div>
               <div style={styles.filters}>
                 <select value={reportYearFilter} onChange={(e) => setReportYearFilter(e.target.value)} style={styles.input}>
-                  <option value="">Tüm yıllar</option>
+                  <option value="">All years</option>
                   <option value="2024">2024</option>
                   <option value="2025">2025</option>
                   <option value="2026">2026</option>
@@ -2181,7 +2181,7 @@ ${message.body || message.snippet}`,
                   }}
                   style={{ ...styles.input, background: "#f3f4f6", color: "#374151", cursor: "pointer", border: "1px solid #d1d5db", fontWeight: 600 }}
                 >
-                  ↺ Sıfırla
+                  ↺ Reset
                 </button>
                 <button
                   type="button"
@@ -2190,7 +2190,7 @@ ${message.body || message.snippet}`,
                     if (!el) return;
                     const win = window.open("", "_blank");
                     win.document.write(`
-                      <html><head><title>Asklepius CRM — Gelir Raporu</title>
+                      <html><head><title>Asklepius CRM — Revenue Raporu</title>
                       <style>
                         body { font-family: Inter, system-ui, sans-serif; padding: 24px; color: #1f2937; }
                         h2 { color: #8A6322; margin-bottom: 8px; }
@@ -2212,7 +2212,7 @@ ${message.body || message.snippet}`,
                   }}
                   style={{ ...styles.input, background: "#8A6322", color: "#fff", cursor: "pointer", border: "none", fontWeight: 600 }}
                 >
-                  📄 PDF İndir
+                  📄 PDF Indir
                 </button>
               </div>
               <ResponsiveContainer width="100%" height={280}>
@@ -2226,7 +2226,7 @@ ${message.body || message.snippet}`,
               </ResponsiveContainer>
             </Panel>
 
-            <Panel title="Status Dağılımı">
+            <Panel title="Status Dagilimi">
               <ResponsiveContainer width="100%" height={280}>
                 <PieChart>
                   <Pie data={reportDealStatusPie} dataKey="value" nameKey="name" outerRadius={90} label>
@@ -2239,36 +2239,36 @@ ${message.body || message.snippet}`,
             </Panel>
 
             <div style={{ gridColumn: "1 / -1" }}>
-              <Panel title="Filtrelenmiş Deal Listesi">
+              <Panel title="Filtered Deal List">
                 <div id="report-printable">
                   <h2 style={{ color: "#8A6322", marginBottom: 8 }}>
-                    Asklepius CRM — Gelir Raporu
+                    Asklepius CRM — Revenue Raporu
                     {reportYearFilter ? ` (${reportYearFilter})` : ""}
                     {reportMonthFilter ? ` / ${reportMonthFilter}` : ""}
                     {reportCompanyFilter ? ` — ${reportCompanyFilter}` : ""}
                   </h2>
                   <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
                     <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px" }}>
-                      <div style={{ fontSize: 11, color: "#6b7280" }}>Deal Sayısı</div>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Deal Count</div>
                       <div style={{ fontSize: 20, fontWeight: 700 }}>{reportDeals.length}</div>
                     </div>
                     <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px" }}>
-                      <div style={{ fontSize: 11, color: "#6b7280" }}>Toplam Gelir</div>
-                      <div style={{ fontSize: 20, fontWeight: 700, color: "#166534" }}>{money(reportDeals.filter((d) => ["closed won","reservasyon","reservasyonlu","reserved"].includes(d.status)).reduce((s, d) => s + Number(d.estRevenue || 0), 0))}</div>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Toplam Revenue</div>
+                      <div style={{ fontSize: 20, fontWeight: 700, color: "#166534" }}>{money(reportDeals.filter((d) => ["closed won","reserved","reserved","reserved"].includes(d.status)).reduce((s, d) => s + Number(d.estRevenue || 0), 0))}</div>
                     </div>
                     <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px" }}>
-                      <div style={{ fontSize: 11, color: "#6b7280" }}>Rapor Tarihi</div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>{new Date().toLocaleDateString("tr-TR")}</div>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Report Date</div>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{new Date().toLocaleDateString("en-US")}</div>
                     </div>
                   </div>
                   {reportDeals.length === 0 ? (
-                    <p>Sonuç bulunamadı.</p>
+                    <p>Sonuc bulunamadi.</p>
                   ) : (
                     <div style={{ overflowX: "auto" }}>
                       <table style={styles.table}>
                         <thead>
                           <tr>
-                            {['Deal','Şirket','Kişi','Tarih','Statü','Gelir'].map((h)=><th key={h} style={styles.th}>{h}</th>)}
+                            {['Deal','Company','Contact','Tarih','Statu','Revenue'].map((h)=><th key={h} style={styles.th}>{h}</th>)}
                         </tr>
                       </thead>
                       <tbody>
@@ -2282,12 +2282,12 @@ ${message.body || message.snippet}`,
                               <span style={{
                                 padding: "2px 8px", borderRadius: 99, fontSize: 12, fontWeight: 600,
                                 background: d.status === "closed won" ? "#dcfce7"
-                                  : d.status === "kayıp/iptal" ? "#fee2e2"
-                                  : ["reservasyon","reservasyonlu","reserved"].includes(d.status) ? "#fef9c3"
+                                  : d.status === "lost-cancelled" ? "#fee2e2"
+                                  : ["reserved","reserved","reserved"].includes(d.status) ? "#fef9c3"
                                   : "#f3f4f6",
                                 color: d.status === "closed won" ? "#166534"
-                                  : d.status === "kayıp/iptal" ? "#991b1b"
-                                  : ["reservasyon","reservasyonlu","reserved"].includes(d.status) ? "#92400e"
+                                  : d.status === "lost-cancelled" ? "#991b1b"
+                                  : ["reserved","reserved","reserved"].includes(d.status) ? "#92400e"
                                   : "#374151",
                               }}>{d.status}</span>
                             </td>
@@ -2309,38 +2309,38 @@ ${message.body || message.snippet}`,
 
             {/* ── Filtreler ── */}
             <div style={{ gridColumn: "1 / -1" }}>
-              <Panel title="Gelir / Gider Raporu Filtreleri">
+              <Panel title="Revenue / Expense Raporu Filtreleri">
                 <div style={styles.filters}>
                   <select value={accYearFilter} onChange={(e) => setAccYearFilter(e.target.value)} style={styles.input}>
-                    <option value="">Tüm yıllar</option>
+                    <option value="">All years</option>
                     <option value="2024">2024</option>
                     <option value="2025">2025</option>
                     <option value="2026">2026</option>
                   </select>
-                  <input type="month" value={accMonthFilter} onChange={(e) => setAccMonthFilter(e.target.value)} style={styles.input} placeholder="Ay seç" />
+                  <input type="month" value={accMonthFilter} onChange={(e) => setAccMonthFilter(e.target.value)} style={styles.input} placeholder="Select month" />
                   <input type="date" value={expenseDateFrom} onChange={(e) => setExpenseDateFrom(e.target.value)} style={styles.input} />
                   <input type="date" value={expenseDateTo} onChange={(e) => setExpenseDateTo(e.target.value)} style={styles.input} />
                 </div>
                 <div style={styles.filters}>
                   <select value={accCompanyFilter} onChange={(e) => setAccCompanyFilter(e.target.value)} style={styles.input}>
-                    <option value="">Tüm şirketler</option>
+                    <option value="">All companies</option>
                     {companies.map((c) => <option key={c.id} value={c.companyName}>{c.companyName}</option>)}
                   </select>
                   <select value={accContactFilter} onChange={(e) => setAccContactFilter(e.target.value)} style={styles.input}>
-                    <option value="">Tüm kişiler</option>
+                    <option value="">All contacts</option>
                     {contacts.map((c) => <option key={c.id} value={c.fullName}>{c.fullName}</option>)}
                   </select>
                   <select value={expenseCategoryFilter} onChange={(e) => setExpenseCategoryFilter(e.target.value)} style={styles.input}>
-                    <option value="">Tüm kategoriler</option>
+                    <option value="">All categories</option>
                     {allExpenseCategories.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
                   <select value={expenseTypeFilter} onChange={(e) => setExpenseTypeFilter(e.target.value)} style={styles.input}>
-                    <option value="">Tüm türler</option>
-                    <option value="realizedIncome">Gerçekleşen gelir</option>
-                    <option value="pendingIncome">Rezervasyon geliri</option>
-                    <option value="expense">Gider</option>
+                    <option value="">All types</option>
+                    <option value="realizedIncome">Realized income</option>
+                    <option value="pendingIncome">Reserved income</option>
+                    <option value="expense">Expense</option>
                   </select>
                 </div>
                 <div style={styles.filters}>
@@ -2354,7 +2354,7 @@ ${message.body || message.snippet}`,
                     }}
                     style={{ ...styles.input, background: "#f3f4f6", color: "#374151", cursor: "pointer", border: "1px solid #d1d5db", fontWeight: 600 }}
                   >
-                    ↺ Sıfırla
+                    ↺ Reset
                   </button>
                   <button
                     type="button"
@@ -2363,7 +2363,7 @@ ${message.body || message.snippet}`,
                       if (!el) return;
                       const win = window.open("", "_blank");
                       win.document.write(`
-                        <html><head><title>Asklepius CRM — Gelir/Gider Raporu</title>
+                        <html><head><title>Asklepius CRM — Revenue/Expense Raporu</title>
                         <style>
                           body { font-family: Inter, system-ui, sans-serif; padding: 24px; color: #1f2937; }
                           h2 { color: #8A6322; margin-bottom: 8px; }
@@ -2386,19 +2386,19 @@ ${message.body || message.snippet}`,
                     }}
                     style={{ ...styles.input, background: "#8A6322", color: "#fff", cursor: "pointer", border: "none", fontWeight: 600 }}
                   >
-                    📄 PDF İndir
+                    📄 PDF Indir
                   </button>
                 </div>
               </Panel>
             </div>
 
-            {/* ── Özet KPI'lar (filtreye göre) ── */}
-            <Panel title="Muhasebe Özeti">
+            {/* ── Ozet KPI'lar (filtreye gore) ── */}
+            <Panel title="Accounting Summary">
               <div style={styles.kpiGrid}>
-                <div style={styles.kpiCard}><div style={styles.kpiLabel}>Gerçekleşen gelir</div><div style={styles.kpiValue}>{money(accountingSummary.realizedIncome)}</div></div>
-                <div style={styles.kpiCard}><div style={styles.kpiLabel}>Rezervasyon geliri</div><div style={styles.kpiValue}>{money(accountingSummary.pendingIncome)}</div></div>
-                <div style={styles.kpiCard}><div style={styles.kpiLabel}>Toplam gelir</div><div style={styles.kpiValue}>{money(accountingSummary.totalIncome)}</div></div>
-                <div style={styles.kpiCard}><div style={styles.kpiLabel}>Gider</div><div style={styles.kpiValue}>{money(accountingSummary.expense)}</div></div>
+                <div style={styles.kpiCard}><div style={styles.kpiLabel}>Realized income</div><div style={styles.kpiValue}>{money(accountingSummary.realizedIncome)}</div></div>
+                <div style={styles.kpiCard}><div style={styles.kpiLabel}>Reserved income</div><div style={styles.kpiValue}>{money(accountingSummary.pendingIncome)}</div></div>
+                <div style={styles.kpiCard}><div style={styles.kpiLabel}>Toplam income</div><div style={styles.kpiValue}>{money(accountingSummary.totalIncome)}</div></div>
+                <div style={styles.kpiCard}><div style={styles.kpiLabel}>Expense</div><div style={styles.kpiValue}>{money(accountingSummary.expense)}</div></div>
                 <div style={styles.kpiCard}><div style={styles.kpiLabel}>Kar / Zarar</div><div style={styles.kpiValue}>{money(accountingSummary.profitLoss)}</div></div>
               </div>
               <ResponsiveContainer width="100%" height={300}>
@@ -2408,20 +2408,20 @@ ${message.body || message.snippet}`,
                   <YAxis />
                   <Tooltip formatter={(v) => money(v)} />
                   <Legend />
-                  <Bar dataKey="realizedIncome" name="Gerçekleşen Gelir" fill="#57C4E5" />
-                  <Bar dataKey="pendingIncome" name="Rezervasyon Geliri" fill="#E0A23F" />
-                  <Bar dataKey="expense" name="Gider" fill="#C98B2E" />
+                  <Bar dataKey="realizedIncome" name="Gerceklesen Revenue" fill="#57C4E5" />
+                  <Bar dataKey="pendingIncome" name="Reserved Revenuei" fill="#E0A23F" />
+                  <Bar dataKey="expense" name="Expense" fill="#C98B2E" />
                 </BarChart>
               </ResponsiveContainer>
             </Panel>
 
-            <Panel title="Gider Ekle">
+            <Panel title="Expense Ekle">
               <div style={styles.form}>
-                <InputField label="Başlık" value={expenseForm.title} onChange={(v) => setExpenseForm({ ...expenseForm, title: v })} />
-                <InputField label="Tutar" value={expenseForm.amount} onChange={(v) => setExpenseForm({ ...expenseForm, amount: v })} type="number" />
+                <InputField label="Subject" value={expenseForm.title} onChange={(v) => setExpenseForm({ ...expenseForm, title: v })} />
+                <InputField label="Amount" value={expenseForm.amount} onChange={(v) => setExpenseForm({ ...expenseForm, amount: v })} type="number" />
                 <InputField label="Tarih" value={expenseForm.date} onChange={(v) => setExpenseForm({ ...expenseForm, date: v })} type="date" />
                 <label style={styles.field}>
-                  <span style={styles.label}>Kategori</span>
+                  <span style={styles.label}>Category</span>
                   <select
                     value={expenseForm.category}
                     onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value, customCategory: "" })}
@@ -2430,43 +2430,43 @@ ${message.body || message.snippet}`,
                     {allExpenseCategories.map((cat) => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
-                    <option value="__custom__">+ Yeni kategori ekle…</option>
+                    <option value="__custom__">+ Add new category…</option>
                   </select>
                   {expenseForm.category === "__custom__" && (
                     <input
                       type="text"
-                      placeholder="Kategori adını yazın (örn: araç gideri)"
+                      placeholder="Category adini yazin (orn: arac gideri)"
                       value={expenseForm.customCategory}
                       onChange={(e) => setExpenseForm({ ...expenseForm, customCategory: e.target.value })}
                       style={{ ...styles.input, marginTop: 6 }}
                     />
                   )}
                 </label>
-                <label style={styles.field}><span style={styles.label}>Tip</span><select value={expenseForm.type} onChange={(e) => setExpenseForm({ ...expenseForm, type: e.target.value })} style={styles.input}><option value="one-time">One-time</option><option value="recurring">Recurring</option></select></label>
-                <label style={styles.field}><span style={styles.label}>Tanıma</span><select value={expenseForm.recognition} onChange={(e) => setExpenseForm({ ...expenseForm, recognition: e.target.value })} style={styles.input}><option value="cash">Cash</option><option value="spread">Spread</option></select></label>
-                {expenseForm.type === "recurring" && expenseForm.recognition === "spread" && <InputField label="Dağıtılacak ay" value={expenseForm.spreadMonths} onChange={(v) => setExpenseForm({ ...expenseForm, spreadMonths: v })} type="number" />}
-                <InputField label="Not" value={expenseForm.note} onChange={(v) => setExpenseForm({ ...expenseForm, note: v })} />
-                <button style={styles.primaryBtn} onClick={addExpense} type="button">Gider Ekle</button>
+                <label style={styles.field}><span style={styles.label}>Type</span><select value={expenseForm.type} onChange={(e) => setExpenseForm({ ...expenseForm, type: e.target.value })} style={styles.input}><option value="one-time">One-time</option><option value="recurring">Recurring</option></select></label>
+                <label style={styles.field}><span style={styles.label}>Recognition</span><select value={expenseForm.recognition} onChange={(e) => setExpenseForm({ ...expenseForm, recognition: e.target.value })} style={styles.input}><option value="cash">Cash</option><option value="spread">Spread</option></select></label>
+                {expenseForm.type === "recurring" && expenseForm.recognition === "spread" && <InputField label="Dagitilacak ay" value={expenseForm.spreadMonths} onChange={(v) => setExpenseForm({ ...expenseForm, spreadMonths: v })} type="number" />}
+                <InputField label="Note" value={expenseForm.note} onChange={(v) => setExpenseForm({ ...expenseForm, note: v })} />
+                <button style={styles.primaryBtn} onClick={addExpense} type="button">Expense Ekle</button>
               </div>
             </Panel>
 
             <div style={{ gridColumn: "1 / -1" }}>
-              <Panel title="Girilen Giderler">
+              <Panel title="Girilen Expenseler">
                 {expenses.length === 0 ? (
-                  <p style={styles.mutedDark}>Henüz gider eklenmemiş.</p>
+                  <p style={styles.mutedDark}>No expenses added yet.</p>
                 ) : (
                   <div style={{ overflowX: "auto" }}>
                     <table style={styles.table}>
                       <thead>
                         <tr>
                           <th style={styles.th}>Tarih</th>
-                          <th style={styles.th}>Başlık</th>
-                          <th style={styles.th}>Kategori</th>
-                          <th style={styles.th}>Tip</th>
-                          <th style={styles.th}>Tanıma</th>
-                          <th style={styles.th}>Tutar</th>
-                          <th style={styles.th}>Not</th>
-                          <th style={styles.th}>İşlem</th>
+                          <th style={styles.th}>Subject</th>
+                          <th style={styles.th}>Category</th>
+                          <th style={styles.th}>Type</th>
+                          <th style={styles.th}>Recognition</th>
+                          <th style={styles.th}>Amount</th>
+                          <th style={styles.th}>Note</th>
+                          <th style={styles.th}>Action</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -2489,14 +2489,14 @@ ${message.body || message.snippet}`,
                                     style={styles.smallBtn}
                                     type="button"
                                   >
-                                    Düzenle
+                                    Edit
                                   </button>
                                   <button
                                     onClick={() => deleteExpense(e.id)}
                                     style={{ ...styles.smallBtn, background: "#fee2e2", color: "#991b1b", borderColor: "#fca5a5" }}
                                     type="button"
                                   >
-                                    Sil
+                                    Delete
                                   </button>
                                 </div>
                               </td>
@@ -2510,12 +2510,12 @@ ${message.body || message.snippet}`,
             </div>
 
             <div style={{ gridColumn: "1 / -1" }}>
-              <Panel title="Dönemsel Kâr / Zarar">
+              <Panel title="Donemsel Kâr / Zarar">
                 <div style={{ overflowX: "auto" }}>
                   <table style={styles.table}>
                     <thead>
                       <tr>
-                        {['Dönem','Gerçekleşen gelir','Rezervasyon geliri','Toplam gelir','Gider','Kar / Zarar'].map((h)=><th key={h} style={styles.th}>{h}</th>)}
+                        {['Donem','Realized income','Reserved income','Toplam income','Expense','Kar / Zarar'].map((h)=><th key={h} style={styles.th}>{h}</th>)}
                       </tr>
                     </thead>
                     <tbody>
@@ -2535,24 +2535,24 @@ ${message.body || message.snippet}`,
               </Panel>
             </div>
 
-            {/* ── Detaylı Gelir / Gider Tablosu (PDF'e dahil) ── */}
+            {/* ── Detailsli Revenue / Expense Tablosu (PDF'e dahil) ── */}
             <div style={{ gridColumn: "1 / -1" }}>
-              <Panel title="Detaylı Gelir / Gider Listesi">
+              <Panel title="Detailsli Revenue / Expense List">
                 <div id="acc-report-printable">
                   <h2 style={{ color: "#8A6322", marginBottom: 8 }}>
-                    Asklepius CRM — Gelir / Gider Raporu
+                    Asklepius CRM — Revenue / Expense Raporu
                     {accYearFilter ? ` (${accYearFilter})` : ""}
                     {accMonthFilter ? ` / ${accMonthFilter}` : ""}
                     {accCompanyFilter ? ` — ${accCompanyFilter}` : ""}
                   </h2>
 
-                  {/* Özet KPI'lar */}
+                  {/* Ozet KPI'lar */}
                   <div style={{ display: "flex", gap: 16, marginBottom: 16, flexWrap: "wrap" }}>
                     {[
-                      { label: "Gerçekleşen Gelir", value: accountingSummary.realizedIncome, cls: "income" },
-                      { label: "Rezervasyon Geliri", value: accountingSummary.pendingIncome, cls: "income" },
-                      { label: "Toplam Gelir", value: accountingSummary.totalIncome, cls: "income" },
-                      { label: "Gider", value: accountingSummary.expense, cls: "expense" },
+                      { label: "Gerceklesen Revenue", value: accountingSummary.realizedIncome, cls: "income" },
+                      { label: "Reserved Revenuei", value: accountingSummary.pendingIncome, cls: "income" },
+                      { label: "Toplam Revenue", value: accountingSummary.totalIncome, cls: "income" },
+                      { label: "Expense", value: accountingSummary.expense, cls: "expense" },
                       { label: "Kar / Zarar", value: accountingSummary.profitLoss, cls: "profit" },
                     ].map(({ label, value, cls }) => (
                       <div key={label} style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px", minWidth: 130 }}>
@@ -2564,20 +2564,20 @@ ${message.body || message.snippet}`,
                       </div>
                     ))}
                     <div style={{ background: "#fff8ea", border: "1px solid #e5e7eb", borderRadius: 8, padding: "10px 18px", minWidth: 130 }}>
-                      <div style={{ fontSize: 11, color: "#6b7280" }}>Rapor Tarihi</div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>{new Date().toLocaleDateString("tr-TR")}</div>
+                      <div style={{ fontSize: 11, color: "#6b7280" }}>Report Date</div>
+                      <div style={{ fontSize: 14, fontWeight: 600 }}>{new Date().toLocaleDateString("en-US")}</div>
                     </div>
                   </div>
 
                   {/* Tablo */}
                   {accountingRows.length === 0 ? (
-                    <p>Seçilen filtrelere uygun kayıt bulunamadı.</p>
+                    <p>No records match the selected filters.</p>
                   ) : (
                     <div style={{ overflowX: "auto" }}>
                       <table style={styles.table}>
                         <thead>
                           <tr>
-                            {["Tarih","Başlık","Şirket","Tür","Kategori","Tutar",""].map((h) =>
+                            {["Tarih","Subject","Company","Tur","Category","Amount",""].map((h) =>
                               <th key={h} style={styles.th}>{h}</th>
                             )}
                           </tr>
@@ -2600,9 +2600,9 @@ ${message.body || message.snippet}`,
                                     : r.kind === "pendingIncome" ? "#92400e"
                                     : "#991b1b",
                                 }}>
-                                  {r.kind === "realizedIncome" ? "Gelir"
-                                    : r.kind === "pendingIncome" ? "Rezervasyon"
-                                    : "Gider"}
+                                  {r.kind === "realizedIncome" ? "Revenue"
+                                    : r.kind === "pendingIncome" ? "Reserved"
+                                    : "Expense"}
                                 </span>
                               </td>
                               <td style={styles.td}>{r.category || r.source || "-"}</td>
@@ -2617,7 +2617,7 @@ ${message.body || message.snippet}`,
                                   <button
                                     onClick={() => deleteExpense(r.id.replace("expense-", ""))}
                                     style={{ background: "none", border: "none", cursor: "pointer", color: "#ef4444", fontSize: 16, padding: "2px 6px" }}
-                                    title="Sil"
+                                    title="Delete"
                                   >🗑</button>
                                 )}
                               </td>
@@ -2633,81 +2633,81 @@ ${message.body || message.snippet}`,
           </section>
         )}
 
-        {view === "gmail" && (
+        {view === "gemail" && (
           <section style={styles.grid2}>
-            <Panel title="Gmail Bağlantısı">
-              {!gmailAuth ? (
+            <Panel title="Gmail Baglantisi">
+              {!gemailAuth ? (
                 <div style={{ display: "grid", gap: 12 }}>
-                  <p>Gmail hesabını bağla, sonra gelen veya gönderilen mailleri listeleyip istediklerini CRM'e aktar.</p>
-                  <button type="button" onClick={() => connectGmail()} style={styles.primaryBtn}>Gmail'i Bağla</button>
-                  {gmailError && <div style={{ color: "#b91c1c" }}>{gmailError}</div>}
+                  <p>Gmail hesabini bagla, sonra gelen veya gonderilen emailleri listeleyip istediklerini CRM'e aktar.</p>
+                  <button type="button" onClick={() => connectGmail()} style={styles.primaryBtn}>Gmail'i Bagla</button>
+                  {gemailError && <div style={{ color: "#b91c1c" }}>{gemailError}</div>}
                 </div>
               ) : (
                 <div style={{ display: "grid", gap: 12 }}>
-                  <div style={styles.notice}>Gmail bağlı. İstersen mailleri çekip tek tek CRM'e aktarabilirsin.</div>
+                  <div style={styles.notice}>Gmail linked. Istersen emailleri cekip tek tek CRM'e aktarabilirsin.</div>
                   <div style={styles.filters}>
-                    <select value={gmailLabelFilter} onChange={(e) => setGmailLabelFilter(e.target.value)} style={styles.input}>
-                      <option value="INBOX">Gelen Kutusu</option>
-                      <option value="SENT">Gönderilenler</option>
-                      <option value="">Tümü</option>
+                    <select value={gemailLabelFilter} onChange={(e) => setGmailLabelFilter(e.target.value)} style={styles.input}>
+                      <option value="INBOX">Inbox</option>
+                      <option value="SENT">Sent</option>
+                      <option value="">All</option>
                     </select>
-                    <input value={gmailQuery} onChange={(e) => setGmailQuery(e.target.value)} style={styles.input} placeholder="Örn: newer_than:30d" />
-                    <button type="button" onClick={() => fetchGmailMessages()} style={styles.smallBtn}>Mailleri Getir</button>
+                    <input value={gemailQuery} onChange={(e) => setGmailQuery(e.target.value)} style={styles.input} placeholder="e.g. newer_than:30d" />
+                    <button type="button" onClick={() => fetchGmailMessages()} style={styles.smallBtn}>Fetch emails</button>
                   </div>
                   <div style={styles.filters}>
-                    <button type="button" onClick={handleGmailDisconnect} style={styles.smallDanger}>Gmail Bağlantısını Kes</button>
-                    {gmailLoading && <div style={{ alignSelf: "center" }}>Yükleniyor...</div>}
+                    <button type="button" onClick={handleGmailDisconnect} style={styles.smallDanger}>Disconnect Gmail</button>
+                    {gemailLoading && <div style={{ alignSelf: "center" }}>Loading...</div>}
                   </div>
-                  {gmailError && <div style={{ color: "#b91c1c" }}>{gmailError}</div>}
+                  {gemailError && <div style={{ color: "#b91c1c" }}>{gemailError}</div>}
                 </div>
               )}
             </Panel>
 
-            <Panel title="Mail Detayı ve CRM'e Aktar">
+            <Panel title="Mail Detailsi ve Import to CRM">
               {!selectedGmailMessage ? (
-                <p>Henüz mail seçilmedi.</p>
+                <p>No eemail selected yet.</p>
               ) : (
                 <div style={{ display: "grid", gap: 12 }}>
                   <Card>
                     <b>{selectedGmailMessage.subject}</b>
-                    <div><b>Kimden:</b> {selectedGmailMessage.from}</div>
-                    <div><b>Kime:</b> {selectedGmailMessage.to || "-"}</div>
-                    <div><b>Tarih:</b> {selectedGmailMessage.date || "-"}</div>
-                    <div><b>Özet:</b> {selectedGmailMessage.snippet || "-"}</div>
+                    <div><b>From:</b> {selectedGmailMessage.from}</div>
+                    <div><b>To:</b> {selectedGmailMessage.to || "-"}</div>
+                    <div><b>Date:</b> {selectedGmailMessage.date || "-"}</div>
+                    <div><b>Summary:</b> {selectedGmailMessage.snippet || "-"}</div>
                     <div>
-                      <b>Mail gövdesi:</b>
+                      <b>Email body:</b>
                       <div style={{ marginTop: 6, whiteSpace: "pre-wrap", background: "#fffdf8", border: "1px solid #f1e4c8", borderRadius: 12, padding: 12, maxHeight: 260, overflow: "auto" }}>
-                        {selectedGmailMessage.body || "Mail gövdesi alınamadı."}
+                        {selectedGmailMessage.body || "Could not retrieve the eemail body."}
                       </div>
                     </div>
                     <div style={{ marginTop: 8, fontSize: 13, color: "#6B7280" }}>
-                      Otomatik öneri: {selectedGmailMessage.suggestedContactId ? "Kişi bulundu" : selectedGmailMessage.suggestedCompanyId ? "Şirket bulundu" : selectedGmailMessage.suggestedDealId ? "Deal bulundu" : "Eşleşme yok"}
+                      Suggested match: {selectedGmailMessage.suggestedContactId ? "Contact found" : selectedGmailMessage.suggestedCompanyId ? "Company found" : selectedGmailMessage.suggestedDealId ? "Deal found" : "No match"}
                     </div>
                   </Card>
 
                   <div style={styles.filters}>
-                    <select value={mailImportTarget.entityType} onChange={(e) => setMailImportTarget((prev) => ({ ...prev, entityType: e.target.value, entityId: "" }))} style={styles.input}>
-                      <option value="contact">Kişi</option>
-                      <option value="company">Şirket</option>
+                    <select value={emailImportTarget.entityType} onChange={(e) => setMailImportTarget((prev) => ({ ...prev, entityType: e.target.value, entityId: "" }))} style={styles.input}>
+                      <option value="contact">Contact</option>
+                      <option value="company">Company</option>
                       <option value="deal">Deal</option>
                       <option value="project">Project</option>
                     </select>
 
-                    <select value={mailImportTarget.entityId} onChange={(e) => setMailImportTarget((prev) => ({ ...prev, entityId: e.target.value }))} style={styles.input}>
-                      <option value="">Kayıt seç</option>
-                      {mailImportTarget.entityType === "contact" && contacts.map((c) => <option key={c.id} value={c.id}>{c.fullName} - {c.email1}</option>)}
-                      {mailImportTarget.entityType === "company" && companies.map((c) => <option key={c.id} value={c.id}>{c.companyName}</option>)}
-                      {mailImportTarget.entityType === "deal" && deals.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
-                      {mailImportTarget.entityType === "project" && projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    <select value={emailImportTarget.entityId} onChange={(e) => setMailImportTarget((prev) => ({ ...prev, entityId: e.target.value }))} style={styles.input}>
+                      <option value="">Select record</option>
+                      {emailImportTarget.entityType === "contact" && contacts.map((c) => <option key={c.id} value={c.id}>{c.fullName} - {c.eemail1}</option>)}
+                      {emailImportTarget.entityType === "company" && companies.map((c) => <option key={c.id} value={c.id}>{c.companyName}</option>)}
+                      {emailImportTarget.entityType === "deal" && deals.map((d) => <option key={d.id} value={d.id}>{d.name}</option>)}
+                      {emailImportTarget.entityType === "project" && projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
 
                     <button
                       type="button"
                       style={styles.primaryBtn}
-                      onClick={() => importGmailMessageToCRM(selectedGmailMessage, mailImportTarget)}
-                      disabled={!mailImportTarget.entityId}
+                      onClick={() => importGmailMessageToCRM(selectedGmailMessage, emailImportTarget)}
+                      disabled={!emailImportTarget.entityId}
                     >
-                      CRM'e Aktar
+                      Import to CRM
                     </button>
                   </div>
                 </div>
@@ -2715,20 +2715,20 @@ ${message.body || message.snippet}`,
             </Panel>
 
             <div style={{ gridColumn: "1 / -1" }}>
-              <Panel title="Mailler">
-                {!gmailAuth ? (
-                  <p>Önce Gmail hesabını bağla.</p>
-                ) : gmailMessages.length === 0 ? (
-                  <p>Mail bulunamadı.</p>
+              <Panel title="Emails">
+                {!gemailAuth ? (
+                  <p>Once Gmail hesabini bagla.</p>
+                ) : gemailMessages.length === 0 ? (
+                  <p>Mail bulunamadi.</p>
                 ) : (
-                  gmailMessages.map((m) => (
+                  gemailMessages.map((m) => (
                     <Card key={m.id}>
                       <b>{m.subject}</b>
                       <div>{m.from}</div>
                       <div>{m.date || "-"}</div>
                       <div style={{ marginTop: 6 }}>{m.snippet}</div>
                       <div style={{ marginTop: 8, fontSize: 12, color: "#6B7280" }}>
-                        Öneri: {m.suggestedContactId ? `Kişi eşleşti` : m.suggestedCompanyId ? `Şirket eşleşti` : m.suggestedDealId ? `Deal eşleşti` : `Eşleşme yok`}
+                        Oneri: {m.suggestedContactId ? `Contact eslesti` : m.suggestedCompanyId ? `Company eslesti` : m.suggestedDealId ? `Deal eslesti` : `No match`}
                       </div>
                       <div style={styles.cardActions}>
                         <button
@@ -2742,7 +2742,7 @@ ${message.body || message.snippet}`,
                             });
                           }}
                         >
-                          Seç
+                          Sec
                         </button>
                         <button
                           type="button"
@@ -2753,7 +2753,7 @@ ${message.body || message.snippet}`,
                           })}
                           disabled={!(m.suggestedContactId || m.suggestedCompanyId || m.suggestedDealId)}
                         >
-                          Hızlı Aktar
+                          Quick Import
                         </button>
                       </div>
                     </Card>
@@ -2777,31 +2777,31 @@ ${message.body || message.snippet}`,
             <div style={{ gridColumn: "1 / -1" }}>
               <BackupPanel onRestoreComplete={handleRestoreComplete} />
             </div>
-            <Panel title="Şirketler CSV">
+            <Panel title="Companies CSV">
               <label style={styles.fileLabel}>
                 <input type="file" accept=".csv" style={styles.fileInput} onChange={(e) => e.target.files?.[0] && importCSV(e.target.files[0], "companies")} />
-                Şirket CSV yükle
+                Upload companies CSV
               </label>
               <p style={styles.helpText}>Company Name, City (Billing), Phone, Mobile, Email, Next Step, Last Activity, Owner</p>
             </Panel>
-            <Panel title="Kişiler CSV">
+            <Panel title="Contacts CSV">
               <label style={styles.fileLabel}>
                 <input type="file" accept=".csv" style={styles.fileInput} onChange={(e) => e.target.files?.[0] && importCSV(e.target.files[0], "contacts")} />
-                Kişi CSV yükle
+                Upload contacts CSV
               </label>
               <p style={styles.helpText}>Full Name, Company, Job Title, Mobile, Business, Email 1, City (Business), Next Step, Last Activity, Owner</p>
             </Panel>
             <Panel title="Deals CSV">
               <label style={styles.fileLabel}>
                 <input type="file" accept=".csv" style={styles.fileInput} onChange={(e) => e.target.files?.[0] && importCSV(e.target.files[0], "deals")} />
-                Deal CSV yükle
+                Upload deals CSV
               </label>
               <p style={styles.helpText}>Customer, Contact Person, Name, Date Received, Status, Est. Revenue, Est. Close Date</p>
             </Panel>
             <Panel title="Projects CSV">
               <label style={styles.fileLabel}>
                 <input type="file" accept=".csv" style={styles.fileInput} onChange={(e) => e.target.files?.[0] && importCSV(e.target.files[0], "projects")} />
-                Project CSV yükle
+                Upload projects CSV
               </label>
               <p style={styles.helpText}>Company, Contact Person, Name, Status, Start Date, Due Date, Est. Revenue, Owner</p>
             </Panel>
@@ -2810,13 +2810,13 @@ ${message.body || message.snippet}`,
 
         {view === "edit" && editState.item && (
           <section style={styles.grid2}>
-            <Panel title="Kayıt Düzenle">
+            <Panel title="Record Edit">
               <button
                 type="button"
                 onClick={() => setView(previousView)}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "#8A6322", fontWeight: 600, fontSize: 13, marginBottom: 12, padding: 0, display: "flex", alignItems: "center", gap: 4 }}
               >
-                ← Geri Dön
+                ← Back
               </button>
               <form onSubmit={saveEdit} style={styles.form}>
                 {editState.type === "company" && (
@@ -2825,7 +2825,7 @@ ${message.body || message.snippet}`,
                     <InputField label="City Billing" value={editState.item.billingCity} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, billingCity: v } })} />
                     <InputField label="Phone" value={editState.item.phone} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, phone: v } })} />
                     <InputField label="Mobile" value={editState.item.mobile} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, mobile: v } })} />
-                    <InputField label="Email" value={editState.item.email} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, email: v } })} />
+                    <InputField label="Email" value={editState.item.eemail} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, eemail: v } })} />
                     <InputField label="Next Step" value={editState.item.nextStep} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, nextStep: v } })} />
                     <InputField label="Last Activity" value={editState.item.lastActivity} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, lastActivity: v } })} />
                     <InputField label="Owner" value={editState.item.owner} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, owner: v } })} />
@@ -2838,7 +2838,7 @@ ${message.body || message.snippet}`,
                     <InputField label="Job Title" value={editState.item.jobTitle} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, jobTitle: v } })} />
                     <InputField label="Mobile" value={editState.item.mobile} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, mobile: v } })} />
                     <InputField label="Business" value={editState.item.business} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, business: v } })} />
-                    <InputField label="Email 1" value={editState.item.email1} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, email1: v } })} />
+                    <InputField label="Email 1" value={editState.item.eemail1} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, eemail1: v } })} />
                     <InputField label="City Business" value={editState.item.cityBusiness} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, cityBusiness: v } })} />
                     <InputField label="Next Step" value={editState.item.nextStep} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, nextStep: v } })} />
                     <InputField label="Last Activity" value={editState.item.lastActivity} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, lastActivity: v } })} />
@@ -2866,9 +2866,9 @@ ${message.body || message.snippet}`,
                     <InputField label="Due Date" value={editState.item.dueDate} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, dueDate: v } })} />
                     <InputField label="Est. Revenue" value={editState.item.estRevenue} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, estRevenue: v } })} />
                     <InputField label="Owner" value={editState.item.owner} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, owner: v } })} />
-                    <InputField label="Not" value={editState.item.note || ""} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, note: v } })} />
+                    <InputField label="Note" value={editState.item.note || ""} onChange={(v) => setEditState({ ...editState, item: { ...editState.item, note: v } })} />
                     <label style={styles.field}>
-                      <span style={styles.label}>Proje Detayı / Açıklama</span>
+                      <span style={styles.label}>Proje Detailsi / Description</span>
                       <textarea
                         value={editState.item.description || ""}
                         onChange={(e) => setEditState({ ...editState, item: { ...editState.item, description: e.target.value } })}
@@ -2877,7 +2877,7 @@ ${message.body || message.snippet}`,
                     </label>
                   </>
                 )}
-                <button style={styles.primaryBtn}>Kaydet</button>
+                <button style={styles.primaryBtn}>Save</button>
               </form>
             </Panel>
           </section>
@@ -2887,10 +2887,10 @@ ${message.body || message.snippet}`,
       {editingExpense && (
         <div style={styles.confirmOverlay}>
           <div style={{ ...styles.confirmBox, width: "min(480px, 94vw)" }}>
-            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Gideri Düzenle</h2>
+            <h2 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16 }}>Expensei Edit</h2>
             <div style={{ display: "grid", gap: 10 }}>
               <label style={styles.field}>
-                <span style={styles.label}>Başlık</span>
+                <span style={styles.label}>Subject</span>
                 <input
                   style={styles.input}
                   value={editingExpense.title}
@@ -2898,7 +2898,7 @@ ${message.body || message.snippet}`,
                 />
               </label>
               <label style={styles.field}>
-                <span style={styles.label}>Tutar</span>
+                <span style={styles.label}>Amount</span>
                 <input
                   type="number"
                   style={styles.input}
@@ -2916,7 +2916,7 @@ ${message.body || message.snippet}`,
                 />
               </label>
               <label style={styles.field}>
-                <span style={styles.label}>Kategori</span>
+                <span style={styles.label}>Category</span>
                 <input
                   style={styles.input}
                   value={editingExpense.category}
@@ -2924,7 +2924,7 @@ ${message.body || message.snippet}`,
                 />
               </label>
               <label style={styles.field}>
-                <span style={styles.label}>Tip</span>
+                <span style={styles.label}>Type</span>
                 <select
                   style={styles.input}
                   value={editingExpense.type}
@@ -2935,7 +2935,7 @@ ${message.body || message.snippet}`,
                 </select>
               </label>
               <label style={styles.field}>
-                <span style={styles.label}>Tanıma</span>
+                <span style={styles.label}>Recognition</span>
                 <select
                   style={styles.input}
                   value={editingExpense.recognition}
@@ -2946,7 +2946,7 @@ ${message.body || message.snippet}`,
                 </select>
               </label>
               <label style={styles.field}>
-                <span style={styles.label}>Not</span>
+                <span style={styles.label}>Note</span>
                 <input
                   style={styles.input}
                   value={editingExpense.note || ""}
@@ -2955,8 +2955,8 @@ ${message.body || message.snippet}`,
               </label>
             </div>
             <div style={{ ...styles.filters, marginTop: 16 }}>
-              <button style={styles.primaryBtn} type="button" onClick={saveEditExpense}>Kaydet</button>
-              <button style={styles.smallBtn} type="button" onClick={() => setEditingExpense(null)}>İptal</button>
+              <button style={styles.primaryBtn} type="button" onClick={saveEditExpense}>Save</button>
+              <button style={styles.smallBtn} type="button" onClick={() => setEditingExpense(null)}>Cancel</button>
             </div>
           </div>
         </div>
@@ -2967,8 +2967,8 @@ ${message.body || message.snippet}`,
           <div style={styles.confirmBox}>
             <p>{confirmState.message}</p>
             <div style={styles.filters}>
-              <button style={styles.smallBtn} type="button" onClick={() => confirmState.onConfirm?.(true)}>Evet</button>
-              <button style={styles.smallBtn} type="button" onClick={() => confirmState.onConfirm?.(false)}>Hayır</button>
+              <button style={styles.smallBtn} type="button" onClick={() => confirmState.onConfirm?.(true)}>Yes</button>
+              <button style={styles.smallBtn} type="button" onClick={() => confirmState.onConfirm?.(false)}>No</button>
             </div>
           </div>
         </div>
